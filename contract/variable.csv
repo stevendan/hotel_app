@@ -1,0 +1,30 @@
+variable,ý nghĩa
+{{excecute_date}},Ngày thực hiện hợp đồng
+{{contract_number}},Số hợp đồng
+{{contract_created_date}},ngày tạo hợp đồng
+{{contract_created_month}},tháng tạo hợp đồng
+{{contract_created_month_en}},tháng tạo hợp đồng Tiếng Anh
+{{contract_created_year}},Năm tạo hợp đồng
+{{client_company_name_en}},Tên công ty khách hàng tiếng Anh
+{{client_company_name_vi}},Tên công ty khách hàng tiếng Việt
+{{client_representative_name_en}},Tên đầy đủ và danh xưng Tiếng Anh
+{{client_representative_name_vi}},Tên đầy đủ và danh xưng Tiếng Việt
+{{client_representative_name_en_vi}},Tên đầy đủ và danh xưng Tiếng Anh-Việt
+{{client_representative_title_en}},Chức danh tiếng Anh
+{{client_representative_title_vi}},Chức danh tiếng Việt
+{{client_address_en}},Địa chỉ tiếng Anh
+{{client_address_vi}},Địa chỉ tiếng Việt
+{{client_office_address_en}},Địa chỉ văn phòng tiếng Anh
+{{client_office_address_vi}},Địa chỉ văn phòng tiếng Việt
+{{client_phone}},Số điện thoại công ty khách hàng
+{{client_VAT_code}},Mã số thuế của khách hàng
+{{deposit_percent}},Phần trăm đặt cọc
+{{request_to_settle_before_date}},Yêu cầu thanh toán trước ngày
+{{contract_cancellation_date}},Ngày hủy hợp đồng
+{{returning_agreement_date}},Ngày hạn gửi lại hợp đồng cho khách sạn
+{{returning_agreement_month}},Tháng hạn gửi lại hợp đồng cho khách sạn
+{{returning_agreement_month_en}},Tháng tiếng Anh hạn gửi lại hợp đồng cho khách sạn
+{{returning_agreement_year}},Năm hạn gửi lại hợp đồng cho khách sạn
+{{sale_rep_fullname}},Danh xưng và tên sale
+{{sale_rep_title_en}},Chức vụ sale Tiếng Anh
+{{sale_rep_title_vi}},Chức vụ sale Tiếng Việt

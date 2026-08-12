@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tạo Báo Giá Hội Thảo - Movenpick</title>
+<link rel="stylesheet" href="style.css" />
+<script src="libs/jszip.min.js"></script>
+</head>
+<body>
+<header>
+  <h1>Tạo Báo Giá Hội Thảo</h1>
+  <p>Dán tin nhắn trao đổi với khách → phân tích chỉ số → xác nhận → xuất file báo giá (.docx)</p>
+</header>
+
+<div class="wrap">
+  <!-- LEFT: input chat -->
+  <section class="card">
+    <h2><span class="step">1</span> Tin nhắn / trao đổi với khách hàng</h2>
+    <div class="body">
+      <textarea id="chatInput" placeholder="Dán đoạn hội thoại, email hoặc yêu cầu của khách hàng vào đây...
+
+Ví dụ:
+Chào em, bên công ty Paula's Choice muốn đặt phòng hội thảo cả ngày cho khoảng 50 khách,
+tổ chức trong 2 ngày 02-03/03/2026. Chị Yến là người liên hệ.
+Bên em báo giá gói full-day khoảng 950.000/khách giúp chị nhé. Cần thuê thêm màn hình LED."></textarea>
+      <div class="toolbar">
+        <button class="btn-primary" id="analyzeBtn">Phân tích tin nhắn ➜</button>
+        <button class="btn-ghost" id="sampleBtn" type="button">Dùng ví dụ mẫu</button>
+      </div>
+      <p class="hint">Công cụ dùng quy tắc nhận dạng (heuristic) để trích xuất số liệu.
+        Vui lòng <b>kiểm tra và chỉnh lại</b> các chỉ số ở cột bên phải trước khi xuất file.</p>
+    </div>
+  </section>
+
+  <!-- RIGHT: confirmed metrics -->
+  <section class="card">
+    <h2><span class="step">2</span> Xác nhận các chỉ số báo giá</h2>
+    <div class="body">
+      <div class="section-label">Thông tin khách hàng</div>
+      <div class="grid2">
+        <div class="field"><label>Công ty (company_name)</label><input id="company_name" /></div>
+        <div class="field"><label>Người liên hệ (contact_name)</label><input id="contact_name" /></div>
+      </div>
+      <div class="field"><label>Xưng hô tiếng Việt (contact_salutation)</label><input id="contact_salutation" /></div>
+
+      <div class="section-label">Chi tiết sự kiện & gói họp</div>
+      <div class="grid2">
+        <div class="field"><label>Ngày sự kiện (event_date)</label><input id="event_date" /></div>
+        <div class="field"><label>Ngày trên bảng giá (pkg_date)</label><input id="pkg_date" /></div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label>Địa điểm (pkg_venue)</label><input id="pkg_venue" /></div>
+        <div class="field"><label>Bố trí (pkg_setup)</label><input id="pkg_setup" /></div>
+        <div class="field"><label>Thời gian (pkg_time)</label><input id="pkg_time" /></div>
+      </div>
+      <div class="field"><label>Loại sự kiện (pkg_event_type)</label><input id="pkg_event_type" /></div>
+      <div class="grid3">
+        <div class="field"><label>Số khách / pax (pkg_qty)</label><input id="pkg_qty" type="number" min="0" /></div>
+        <div class="field"><label>Số ngày (pkg_days)</label><input id="pkg_days" type="number" min="0" /></div>
+        <div class="field"><label>Đơn giá / khách / ngày (pkg_unit_price)</label><input id="pkg_unit_price" type="number" min="0" /></div>
+      </div>
+
+      <div class="section-label">Dịch vụ cộng thêm (tuỳ chọn)</div>
+      <div class="grid2">
+        <div class="field"><label>Mô tả (addon_desc)</label><input id="addon_desc" placeholder="VD: Thuê màn hình LED 3,5m x 6m" /></div>
+        <div class="field"><label>Số lượng (addon_qty)</label><input id="addon_qty" type="number" min="0" /></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Số ngày (addon_days)</label><input id="addon_days" type="number" min="0" /></div>
+        <div class="field"><label>Đơn giá (addon_unit_price)</label><input id="addon_unit_price" type="number" min="0" /></div>
+      </div>
+
+      <div class="section-label">Tổng chi phí (tự động tính)</div>
+      <div class="grid2">
+        <div class="field"><label>Thành tiền gói họp (pkg_total)</label><input id="pkg_total" readonly /></div>
+        <div class="field"><label>Thành tiền cộng thêm (addon_total)</label><input id="addon_total" readonly /></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Tạm tính chưa thuế (subtotal)</label><input id="subtotal" readonly /></div>
+        <div class="field"><label>Phí phục vụ 5% (service_charge)</label><input id="service_charge" readonly /></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Thuế VAT 8% (vat)</label><input id="vat" readonly /></div>
+        <div class="field"><label>Tổng cộng đã gồm thuế (grand_total)</label><input id="grand_total" readonly /></div>
+      </div>
+
+      <div class="section-label">Thông tin người báo giá & hiệu lực</div>
+      <div class="grid2">
+        <div class="field"><label>Tên NV Sales (sales_rep_name)</label><input id="sales_rep_name" /></div>
+        <div class="field"><label>Chức danh (sales_rep_title)</label><input id="sales_rep_title" /></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Điện thoại (sales_rep_phone)</label><input id="sales_rep_phone" /></div>
+        <div class="field"><label>Email (sales_rep_email)</label><input id="sales_rep_email" /></div>
+      </div>
+      <div class="field"><label>Báo giá có hiệu lực đến (valid_until)</label><input id="valid_until" /></div>
+
+      <button class="btn-gold" id="generateBtn"><span class="step" style="background:#fff;color:var(--gold)">3</span>&nbsp; Tạo file báo giá (.docx)</button>
+      <div id="status" class="status"></div>
+      <input type="file" id="templateFile" accept=".docx" style="display:none" />
+      <p class="hint">File mẫu: <b>proposal-template.docx</b>. Nếu công cụ không tự tải được
+        (khi mở bằng file://), sẽ hiện hộp thoại để bạn chọn file mẫu thủ công.</p>
+    </div>
+  </section>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

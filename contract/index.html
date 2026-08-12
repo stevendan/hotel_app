@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tạo hợp đồng sự kiện</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script defer src="script.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div>
+      <p class="eyebrow">Mövenpick Living West Hanoi</p>
+      <h1>Tạo hợp đồng sự kiện</h1>
+      <p class="subtitle">Điền thông tin, kiểm tra các trường bắt buộc và xuất hợp đồng Word từ mẫu có sẵn.</p>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="card intro-card">
+      <div>
+        <h2>Biểu mẫu hợp đồng</h2>
+        <p>Hệ thống ưu tiên dùng <strong>contract-template.docx</strong> trong thư mục này. Bạn cũng có thể chọn một bản mẫu khác khi cần.</p>
+      </div>
+      <div class="template-actions">
+        <label class="button button-secondary" for="templateFile">Chọn biểu mẫu khác</label>
+        <input id="templateFile" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
+        <span id="templateName" class="template-name">Đang dùng: contract-template.docx</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-heading">
+        <div>
+          <p class="eyebrow">Bước 1</p>
+          <h2>Thiết lập nhanh ngày tháng</h2>
+        </div>
+        <p>Các trường ngày, tháng, năm tương ứng sẽ được điền tự động; vẫn có thể chỉnh trực tiếp bên dưới.</p>
+      </div>
+      <div class="card-body quick-dates">
+        <div class="field">
+          <label for="contractCreatedFullDate">Ngày lập hợp đồng</label>
+          <input id="contractCreatedFullDate" type="date">
+        </div>
+        <div class="field">
+          <label for="returnAgreementFullDate">Hạn khách gửi lại hợp đồng</label>
+          <input id="returnAgreementFullDate" type="date">
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-heading">
+        <div>
+          <p class="eyebrow">Bước 2</p>
+          <h2>Thông tin hợp đồng</h2>
+        </div>
+        <p>Các trường được lấy từ <code>variable.csv</code>. Dấu <span class="required-mark">*</span> cho biết biến đang xuất hiện trong mẫu hiện tại.</p>
+      </div>
+      <div id="formFields" class="card-body form-groups" aria-live="polite">
+        <p class="loading">Đang tải danh sách biến…</p>
+      </div>
+    </section>
+
+    <section class="generate-panel">
+      <button id="generateBtn" class="button button-primary" type="button" disabled>Tạo file hợp đồng (.docx)</button>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+    </section>
+  </main>
+</body>
+</html>
