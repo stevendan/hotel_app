@@ -30,43 +30,270 @@
       </div>
     </section>
 
-    <section class="card">
-      <div class="card-heading">
-        <div>
-          <p class="eyebrow">Bước 1</p>
-          <h2>Thiết lập nhanh ngày tháng</h2>
-        </div>
-        <p>Các trường ngày, tháng, năm tương ứng sẽ được điền tự động; vẫn có thể chỉnh trực tiếp bên dưới.</p>
+    <section class="card intro-card ai-extract-card">
+      <div>
+        <h2>Trích xuất thông tin từ tin nhắn</h2>
+        <p>Dán nội dung tin nhắn/email của khách hàng, hệ thống dùng AI (Google Gemini) để tự động phân tích và điền các trường bên dưới.</p>
       </div>
-      <div class="card-body quick-dates">
-        <div class="field">
-          <label for="contractCreatedFullDate">Ngày lập hợp đồng</label>
-          <input id="contractCreatedFullDate" type="date">
-        </div>
-        <div class="field">
-          <label for="returnAgreementFullDate">Hạn khách gửi lại hợp đồng</label>
-          <input id="returnAgreementFullDate" type="date">
-        </div>
+      <div class="template-actions">
+        <button id="openExtractBtn" class="button button-ai" type="button">
+          <svg class="button-ai-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+            <path d="M12 2l1.9 4.6L18.5 8.5 13.9 10.4 12 15l-1.9-4.6L5.5 8.5l4.6-1.9L12 2z"/>
+            <path d="M19 14l.9 2.2 2.1.9-2.1.9L19 20.2 18.1 18l-2.1-.9 2.1-.9L19 14z"/>
+          </svg>
+          <span>Trích xuất thông tin từ tin nhắn</span>
+        </button>
       </div>
     </section>
 
     <section class="card">
       <div class="card-heading">
         <div>
-          <p class="eyebrow">Bước 2</p>
           <h2>Thông tin hợp đồng</h2>
         </div>
-        <p>Các trường được lấy từ <code>variable.csv</code>. Dấu <span class="required-mark">*</span> cho biết biến đang xuất hiện trong mẫu hiện tại.</p>
+        <p>Các trường được liệt kê sẵn bên dưới. Dấu <span class="required-mark">*</span> cho biết biến đang xuất hiện trong mẫu hiện tại.</p>
       </div>
       <div id="formFields" class="card-body form-groups" aria-live="polite">
-        <p class="loading">Đang tải danh sách biến…</p>
+
+        <section>
+          <h3 class="group-title">Thông tin hợp đồng</h3>
+          <div class="field-grid">
+            <div class="field">
+              <label for="field_excecute_date">Ngày thực hiện hợp đồng<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{excecute_date}}</code></label>
+              <div class="date-picker-wrap">
+                <input id="field_excecute_date" name="excecute_date" type="text" placeholder="dd/mm/yyyy" autocomplete="off">
+                <input type="date" class="date-native" tabindex="-1" aria-hidden="true">
+              </div>
+            </div>
+            <div class="field">
+              <label for="field_contract_number">Số hợp đồng<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{contract_number}}</code></label>
+              <input id="field_contract_number" name="contract_number" type="text" placeholder="Nhập thông tin" autocomplete="off">
+            </div>
+            <div class="computed-cluster">
+              <div class="field date-source-field">
+                <label for="contractCreatedFullDate_display">Ngày tạo hợp đồng<span class="required-mark">*</span></label>
+                <div class="date-picker-wrap">
+                  <input id="contractCreatedFullDate_display" type="text" readonly placeholder="dd/mm/yyyy" autocomplete="off">
+                  <input id="contractCreatedFullDate" type="date" class="date-native" tabindex="-1" aria-hidden="true">
+                </div>
+              </div>
+              <p class="computed-cluster-label">Tự động tính từ ngày tạo hợp đồng</p>
+              <div class="field is-computed">
+                <label for="field_contract_created_date">ngày tạo hợp đồng<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{contract_created_date}}</code></label>
+                <input id="field_contract_created_date" name="contract_created_date" type="text" autocomplete="off" readonly>
+              </div>
+              <div class="field is-computed">
+                <label for="field_contract_created_month">tháng tạo hợp đồng<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{contract_created_month}}</code></label>
+                <input id="field_contract_created_month" name="contract_created_month" type="text" autocomplete="off" readonly>
+              </div>
+              <div class="field is-computed">
+                <label for="field_contract_created_month_en">tháng tạo hợp đồng Tiếng Anh<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{contract_created_month_en}}</code></label>
+                <input id="field_contract_created_month_en" name="contract_created_month_en" type="text" autocomplete="off" readonly>
+              </div>
+              <div class="field is-computed">
+                <label for="field_contract_created_year">Năm tạo hợp đồng<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{contract_created_year}}</code></label>
+                <input id="field_contract_created_year" name="contract_created_year" type="text" autocomplete="off" readonly>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h3 class="group-title">Thông tin khách hàng (Bên B)</h3>
+          <div class="field-grid">
+            <div class="field">
+              <label for="field_client_company_name_en">Tên công ty khách hàng tiếng Anh<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{client_company_name_en}}</code></label>
+              <input id="field_client_company_name_en" name="client_company_name_en" type="text" placeholder="Nhập thông tin" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="field_client_company_name_vi">Tên công ty khách hàng tiếng Việt<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{client_company_name_vi}}</code></label>
+              <input id="field_client_company_name_vi" name="client_company_name_vi" type="text" placeholder="Nhập thông tin" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="field_client_representative_name_en">Tên đầy đủ và danh xưng Tiếng Anh<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{client_representative_name_en}}</code></label>
+              <input id="field_client_representative_name_en" name="client_representative_name_en" type="text" placeholder="Nhập thông tin" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="field_client_representative_name_vi">Tên đầy đủ và danh xưng Tiếng Việt<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{client_representative_name_vi}}</code></label>
+              <input id="field_client_representative_name_vi" name="client_representative_name_vi" type="text" placeholder="Nhập thông tin" autocomplete="off">
+            </div>
+            <div class="field" style="grid-column: 1 / -1">
+              <label for="field_client_representative_name_en_vi">Tên đầy đủ và danh xưng Tiếng Anh-Việt<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{client_representative_name_en_vi}}</code></label>
+              <input id="field_client_representative_name_en_vi" name="client_representative_name_en_vi" type="text" placeholder="Nhập thông tin" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="field_client_representative_title_en">Chức danh tiếng Anh<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{client_representative_title_en}}</code></label>
+              <input id="field_client_representative_title_en" name="client_representative_title_en" type="text" placeholder="Nhập thông tin" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="field_client_representative_title_vi">Chức danh tiếng Việt<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{client_representative_title_vi}}</code></label>
+              <input id="field_client_representative_title_vi" name="client_representative_title_vi" type="text" placeholder="Nhập thông tin" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="field_client_address_en">Địa chỉ tiếng Anh<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{client_address_en}}</code></label>
+              <input id="field_client_address_en" name="client_address_en" type="text" placeholder="Nhập thông tin" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="field_client_address_vi">Địa chỉ tiếng Việt<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{client_address_vi}}</code></label>
+              <input id="field_client_address_vi" name="client_address_vi" type="text" placeholder="Nhập thông tin" autocomplete="off">
+            </div>
+
+            <div class="field">
+              <label for="field_client_phone">Số điện thoại công ty khách hàng<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{client_phone}}</code></label>
+              <input id="field_client_phone" name="client_phone" type="tel" placeholder="Nhập thông tin" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="field_client_mobile_phone">Số di động của khách hàng<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{client_mobile_phone}}</code></label>
+              <input id="field_client_mobile_phone" name="client_mobile_phone" type="tel" placeholder="Nhập thông tin" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="field_client_email">Email của khách hàng<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{client_email}}</code></label>
+              <input id="field_client_email" name="client_email" type="email" placeholder="Nhập thông tin" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="field_client_VAT_code">Mã số thuế của khách hàng<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{client_VAT_code}}</code></label>
+              <div class="input-with-button">
+                <input id="field_client_VAT_code" name="client_VAT_code" type="text" placeholder="Nhập thông tin" autocomplete="off" inputmode="numeric">
+                <button id="lookupVatBtn" class="button button-secondary" type="button">Lấy thông tin</button>
+              </div>
+              <p id="lookupVatHint" class="lookup-hint" role="status" aria-live="polite"></p>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h3 class="group-title">Thanh toán và thời hạn</h3>
+          <div class="field-grid">
+            <div class="field">
+              <label for="field_deposit_percent">Phần trăm đặt cọc<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{deposit_percent}}</code></label>
+              <input id="field_deposit_percent" name="deposit_percent" type="number" min="0" max="100" step="1" placeholder="Ví dụ: 50" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="field_request_to_settle_before_date">Yêu cầu thanh toán trước ngày<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{request_to_settle_before_date}}</code></label>
+              <div class="date-picker-wrap">
+                <input id="field_request_to_settle_before_date" name="request_to_settle_before_date" type="text" placeholder="dd/mm/yyyy" autocomplete="off">
+                <input type="date" class="date-native" tabindex="-1" aria-hidden="true">
+              </div>
+            </div>
+            <div class="field">
+              <label for="field_contract_cancellation_date">Ngày hủy hợp đồng<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{contract_cancellation_date}}</code></label>
+              <div class="date-picker-wrap">
+                <input id="field_contract_cancellation_date" name="contract_cancellation_date" type="text" placeholder="dd/mm/yyyy" autocomplete="off">
+                <input type="date" class="date-native" tabindex="-1" aria-hidden="true">
+              </div>
+            </div>
+            <div class="computed-cluster">
+              <div class="field date-source-field">
+                <label for="returnAgreementFullDate_display" >Hạn khách gửi lại hợp đồng<span class="required-mark">*</span></label>
+                <div class="date-picker-wrap">
+                  <input id="returnAgreementFullDate_display" type="text" readonly placeholder="dd/mm/yyyy" autocomplete="off">
+                  <input id="returnAgreementFullDate" type="date" class="date-native" tabindex="-1" aria-hidden="true">
+                </div>
+              </div>
+              <p class="computed-cluster-label">Tự động tính từ hạn gửi lại hợp đồng</p>
+              <div class="field is-computed">
+                <label for="field_returning_agreement_date">Ngày hạn gửi lại hợp đồng cho khách sạn<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{returning_agreement_date}}</code></label>
+                <input id="field_returning_agreement_date" name="returning_agreement_date" type="text" autocomplete="off" readonly>
+              </div>
+              <div class="field is-computed">
+                <label for="field_returning_agreement_month">Tháng hạn gửi lại hợp đồng cho khách sạn<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{returning_agreement_month}}</code></label>
+                <input id="field_returning_agreement_month" name="returning_agreement_month" type="text" autocomplete="off" readonly>
+              </div>
+              <div class="field is-computed">
+                <label for="field_returning_agreement_month_en">Tháng tiếng Anh hạn gửi lại hợp đồng cho khách sạn<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{returning_agreement_month_en}}</code></label>
+                <input id="field_returning_agreement_month_en" name="returning_agreement_month_en" type="text" autocomplete="off" readonly>
+              </div>
+              <div class="field is-computed">
+                <label for="field_returning_agreement_year">Năm hạn gửi lại hợp đồng cho khách sạn<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{returning_agreement_year}}</code></label>
+                <input id="field_returning_agreement_year" name="returning_agreement_year" type="text" autocomplete="off" readonly>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h3 class="group-title">Thông tin nhân viên kinh doanh</h3>
+          <div class="field-grid">
+            <div class="field is-unused" style="grid-column: 1 / -1" title="Biến này chưa xuất hiện trong contract-template.docx hiện tại.">
+              <label for="segment_sale_rep_fullname">Danh xưng và tên sale<code>{{sale_rep_fullname}}</code></label>
+              <div class="segmented" id="segment_sale_rep_fullname" role="radiogroup" aria-label="Danh xưng và tên sale">
+                <input class="segmented-input" type="radio" name="sale_rep_choice" id="sale_rep_choice_1" value="Ms/Bà. Vũ Thị Hiền" data-title-vi="Nhân viên kinh doanh sự kiện" data-title-en="Event Sales Executive" checked>
+                <label class="segmented-option" for="sale_rep_choice_1">Ms/Bà. Vũ Thị Hiền</label>
+                <input class="segmented-input" type="radio" name="sale_rep_choice" id="sale_rep_choice_2" value="Ms/Bà. Lương Cẩm Tú" data-title-vi="Quản lý cao cấp sự kiện" data-title-en="Senior Sales Manager - Mice">
+                <label class="segmented-option" for="sale_rep_choice_2">Ms/Bà. Lương Cẩm Tú</label>
+                <input class="segmented-input" type="radio" name="sale_rep_choice" id="sale_rep_choice_3" value="">
+                <label class="segmented-option" for="sale_rep_choice_3">Tự nhập…</label>
+              </div>
+            </div>
+            <div class="field is-unused" id="sale_rep_fullname_field" hidden style="grid-column: 1 / -1">
+              <label for="field_sale_rep_fullname">Danh xưng và tên sale<code>{{sale_rep_fullname}}</code></label>
+              <input id="field_sale_rep_fullname" name="sale_rep_fullname" type="text" placeholder="Nhập danh xưng và tên sale" autocomplete="off">
+            </div>
+            <div class="field is-unused">
+              <label for="field_sale_rep_title_en">Chức vụ sale Tiếng Anh<code>{{sale_rep_title_en}}</code></label>
+              <input id="field_sale_rep_title_en" name="sale_rep_title_en" type="text" placeholder="Nhập chức vụ tiếng Anh" autocomplete="off" readonly>
+            </div>
+            <div class="field is-unused">
+              <label for="field_sale_rep_title_vi">Chức vụ sale Tiếng Việt<code>{{sale_rep_title_vi}}</code></label>
+              <input id="field_sale_rep_title_vi" name="sale_rep_title_vi" type="text" placeholder="Nhập chức vụ tiếng Việt" autocomplete="off" readonly>
+            </div>
+          </div>
+        </section>
+
       </div>
     </section>
 
     <section class="generate-panel">
+      <button id="sampleDataBtn" class="button button-secondary" type="button">Tạo dữ liệu mẫu</button>
       <button id="generateBtn" class="button button-primary" type="button" disabled>Tạo file hợp đồng (.docx)</button>
       <p id="status" class="status" role="status" aria-live="polite"></p>
     </section>
   </main>
+
+  <dialog id="extractDialog" class="extract-dialog">
+    <div class="extract-dialog-inner">
+      <div class="extract-dialog-head">
+        <div class="dialog-title">
+          <span class="ai-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+              <path d="M12 2l1.9 4.6L18.5 8.5 13.9 10.4 12 15l-1.9-4.6L5.5 8.5l4.6-1.9L12 2z"/>
+              <path d="M19 14l.9 2.2 2.1.9-2.1.9L19 20.2 18.1 18l-2.1-.9 2.1-.9L19 14z"/>
+            </svg>
+          </span>
+          <h2>Trích xuất thông tin từ tin nhắn</h2>
+        </div>
+        <button type="button" class="dialog-close" id="extractCloseBtn" aria-label="Đóng">&times;</button>
+      </div>
+      <p class="dialog-desc">Hệ thống sẽ dùng AI (Google Gemini) để đọc tin nhắn và tự động điền các trường thông tin khách hàng. API key chỉ được lưu trên trình duyệt của bạn.</p>
+
+      <label class="dialog-field">
+        <span>Google Gemini API key</span>
+        <input id="geminiKey" type="password" placeholder="AIza..." autocomplete="off" spellcheck="false">
+      </label>
+      <label class="dialog-remember">
+        <input id="rememberKey" type="checkbox"> Ghi nhớ API key trên trình duyệt này
+      </label>
+
+      <label class="dialog-field">
+        <span>Nội dung tin nhắn</span>
+        <textarea id="messageContent" rows="10" placeholder="Dán nội dung tin nhắn/email của khách hàng vào đây…"></textarea>
+      </label>
+
+      <div id="extractLoader" class="ai-loader" hidden>
+        <span class="ai-loader-orb" aria-hidden="true"></span>
+        <span class="ai-loader-text">AI đang đọc và phân tích tin nhắn<span class="ai-loader-dots"><i>.</i><i>.</i><i>.</i></span></span>
+      </div>
+
+      <p id="extractStatus" class="status" role="status" aria-live="polite"></p>
+
+      <div class="dialog-actions">
+        <button type="button" class="button button-secondary" id="extractCancelBtn">Hủy</button>
+        <button type="button" class="button button-primary dialog-primary" id="extractBtn">
+          <span class="btn-spinner" aria-hidden="true"></span>
+          <span class="btn-label">Trích xuất</span>
+        </button>
+      </div>
+    </div>
+  </dialog>
 </body>
 </html>
