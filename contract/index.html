@@ -18,15 +18,34 @@
   </header>
 
   <main class="page">
-    <section class="card intro-card">
-      <div>
-        <h2>Biểu mẫu hợp đồng</h2>
-        <p>Hệ thống ưu tiên dùng <strong>contract-template.docx</strong> trong thư mục này. Bạn cũng có thể chọn một bản mẫu khác khi cần.</p>
+    <section class="card template-card">
+      <div class="template-card-head">
+        <h2>Chọn biểu mẫu hợp đồng</h2>
+        <p>Chọn theo từng tiêu chí bên dưới, hệ thống sẽ tự tìm file mẫu phù hợp trong thư mục <code>template</code>.</p>
       </div>
-      <div class="template-actions">
-        <label class="button button-secondary" for="templateFile">Chọn biểu mẫu khác</label>
+      <div class="criteria-grid">
+        <label class="criteria-field">
+          <span>Loại sảnh</span>
+          <select id="criteriaVenue"></select>
+        </label>
+        <label class="criteria-field">
+          <span>Gói dịch vụ</span>
+          <select id="criteriaPackage"></select>
+        </label>
+        <label class="criteria-field">
+          <span>Thời lượng</span>
+          <select id="criteriaDay"></select>
+        </label>
+        <label class="criteria-field">
+          <span>Bữa ăn</span>
+          <select id="criteriaMeal"></select>
+        </label>
+      </div>
+      <p id="templateResolved" class="template-resolved" role="status" aria-live="polite"></p>
+      <div class="template-override">
+        <label class="button button-secondary" for="templateFile">Chọn file mẫu thủ công</label>
         <input id="templateFile" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
-        <span id="templateName" class="template-name">Đang dùng: contract-template.docx</span>
+        <span id="templateName" class="template-name"></span>
       </div>
     </section>
 
@@ -56,7 +75,7 @@
       <div id="formFields" class="card-body form-groups" aria-live="polite">
 
         <section>
-          <h3 class="group-title">Thông tin hợp đồng</h3>
+          <h3 class="group-title"><svg class="group-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 2h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm8 1.5V8h4.5L14 3.5zM8 12h8v1.5H8V12zm0 3h8v1.5H8V15zm0-6h4v1.5H8V9z"/></svg>Thông tin hợp đồng</h3>
           <div class="field-grid">
             <div class="field">
               <label for="field_excecute_date">Ngày thực hiện hợp đồng<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{excecute_date}}</code></label>
@@ -99,7 +118,7 @@
         </section>
 
         <section>
-          <h3 class="group-title">Thông tin khách hàng (Bên B)</h3>
+          <h3 class="group-title"><svg class="group-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5z"/></svg>Thông tin khách hàng (Bên B)</h3>
           <div class="field-grid">
             <div class="field">
               <label for="field_client_company_name_en">Tên công ty khách hàng tiếng Anh<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{client_company_name_en}}</code></label>
@@ -162,7 +181,7 @@
         </section>
 
         <section>
-          <h3 class="group-title">Thanh toán và thời hạn</h3>
+          <h3 class="group-title"><svg class="group-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1a11 11 0 1 0 0 22 11 11 0 0 0 0-22zm1 16.9V19h-2v-1.05a4 4 0 0 1-3-3.45h2a2 2 0 0 0 2 1.5c1 0 1.8-.5 1.8-1.3 0-.7-.5-1.1-2-1.5-1.8-.5-3.5-1.1-3.5-3.2A3.2 3.2 0 0 1 11 5.1V4h2v1.1a3.6 3.6 0 0 1 2.8 3.2h-2A1.6 1.6 0 0 0 12 7c-1 0-1.6.5-1.6 1.2 0 .7.6 1 2.1 1.4 2 .5 3.4 1.3 3.4 3.3a3.3 3.3 0 0 1-2.9 3z"/></svg>Thanh toán và thời hạn</h3>
           <div class="field-grid">
             <div class="field">
               <label for="field_deposit_percent">Phần trăm đặt cọc<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{deposit_percent}}</code></label>
@@ -212,7 +231,118 @@
         </section>
 
         <section>
-          <h3 class="group-title">Thông tin nhân viên kinh doanh</h3>
+          <h3 class="group-title"><svg class="group-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 2v2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7zM5 9h14v10H5V9z"/></svg>Chi tiết sự kiện và báo giá</h3>
+          <p class="group-description">Các trường này xuất hiện trong các mẫu theo sảnh (bảng Excel nhúng). Giờ nhập theo định dạng 24 giờ HH:MM (ví dụ 14:00).</p>
+
+          <div class="subgroup">
+            <h4 class="subgroup-title"><svg class="subgroup-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 2v2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7zM5 9h14v10H5V9z"/></svg>Sự kiện</h4>
+            <div class="field-grid">
+              <div class="field">
+                <label for="field_event_start_time">Giờ bắt đầu sự kiện<code>{{event_start_time}}</code></label>
+                <input id="field_event_start_time" name="event_start_time" type="text" inputmode="numeric" maxlength="5" placeholder="14:00" pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" autocomplete="off">
+              </div>
+              <div class="field">
+                <label for="field_event_end_time">Giờ kết thúc sự kiện<code>{{event_end_time}}</code></label>
+                <input id="field_event_end_time" name="event_end_time" type="text" inputmode="numeric" maxlength="5" placeholder="14:00" pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" autocomplete="off">
+              </div>
+              <div class="field">
+                <label for="field_event_setup_type">Kiểu bố trí sự kiện<code>{{event_setup_type}}</code></label>
+                <select id="field_event_setup_type" name="event_setup_type">
+                  <option value="Classroom">Classroom</option>
+                  <option value="Theater">Theater</option>
+                  <option value="Banquet">Banquet</option>
+                  <option value="Cocktail">Cocktail</option>
+                  <option value="U-shape">U-shape</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="subgroup">
+            <h4 class="subgroup-title"><svg class="subgroup-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11 9V2H9v7a1 1 0 0 1-2 0V2H5v7a3 3 0 0 0 2 2.83V22h2V11.83A3 3 0 0 0 11 9zM16 2c-1.66 0-3 2.24-3 5 0 2.4 1 4.4 2.5 4.9V22h1V2h-.5z"/></svg>Bữa ăn</h4>
+            <div class="field-grid">
+              <div class="field">
+                <label for="field_meal_start_time">Giờ bắt đầu bữa ăn<code>{{meal_start_time}}</code></label>
+                <input id="field_meal_start_time" name="meal_start_time" type="text" inputmode="numeric" maxlength="5" placeholder="11:30" pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" autocomplete="off">
+              </div>
+              <div class="field">
+                <label for="field_meal_end_time">Giờ kết thúc bữa ăn<code>{{meal_end_time}}</code></label>
+                <input id="field_meal_end_time" name="meal_end_time" type="text" inputmode="numeric" maxlength="5" placeholder="13:30" pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" autocomplete="off">
+              </div>
+              <div class="field">
+                <label for="field_meal_setup_type">Kiểu bố trí bữa ăn<code>{{meal_setup_type}}</code></label>
+                <select id="field_meal_setup_type" name="meal_setup_type">
+                  <option value="Existing">Existing</option>
+                  <option value="Banquet">Banquet</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="field_meal_venue">Địa điểm dùng bữa<code>{{meal_venue}}</code></label>
+                <select id="field_meal_venue" name="meal_venue">
+                  <option value="Com Vong Restaurant" selected>Com Vong Restaurant</option>
+                  <option value="" data-venue-option="true">—</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="subgroup">
+            <h4 class="subgroup-title"><svg class="subgroup-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 3H4v7a5 5 0 0 0 5 5h4a5 5 0 0 0 4.9-4H19a3 3 0 0 0 0-6h-1V3zm0 5h1a1 1 0 0 1 0 2h-1V8zM3 19h16v2H3z"/></svg>Tiệc trà (tea break)</h4>
+            <div class="field-grid">
+              <div class="field">
+                <label for="field_morning_tea_break_start_time">Giờ bắt đầu tiệc trà buổi sáng<code>{{morning_tea_break_start_time}}</code></label>
+                <input id="field_morning_tea_break_start_time" name="morning_tea_break_start_time" type="text" inputmode="numeric" maxlength="5" placeholder="09:00" pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" autocomplete="off">
+              </div>
+              <div class="field">
+                <label for="field_morning_tea_break_end_time">Giờ kết thúc tiệc trà buổi sáng<code>{{morning_tea_break_end_time}}</code></label>
+                <input id="field_morning_tea_break_end_time" name="morning_tea_break_end_time" type="text" inputmode="numeric" maxlength="5" placeholder="09:30" pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" autocomplete="off">
+              </div>
+              <div class="field">
+                <label for="field_afternoon_tea_break_start_time">Giờ bắt đầu tiệc trà buổi chiều<code>{{afternoon_tea_break_start_time}}</code></label>
+                <input id="field_afternoon_tea_break_start_time" name="afternoon_tea_break_start_time" type="text" inputmode="numeric" maxlength="5" placeholder="15:00" pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" autocomplete="off">
+              </div>
+              <div class="field">
+                <label for="field_afternoon_tea_break_end_time">Giờ kết thúc tiệc trà buổi chiều<code>{{afternoon_tea_break_end_time}}</code></label>
+                <input id="field_afternoon_tea_break_end_time" name="afternoon_tea_break_end_time" type="text" inputmode="numeric" maxlength="5" placeholder="15:30" pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" autocomplete="off">
+              </div>
+              <div class="field" style="grid-column: 2">
+                <label for="field_tea_break_venue">Địa điểm tiệc trà (tea break)<code>{{tea_break_venue}}</code></label>
+                <select id="field_tea_break_venue" name="tea_break_venue">
+                  <option value="Foyer" selected>Foyer</option>
+                  <option value="" data-venue-option="true">—</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="subgroup">
+            <h4 class="subgroup-title"><svg class="subgroup-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.4 11.6l-9-9A2 2 0 0 0 11 2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 .6 1.4l9 9a2 2 0 0 0 2.8 0l7-7a2 2 0 0 0 0-2.8zM6.5 8A1.5 1.5 0 1 1 8 6.5 1.5 1.5 0 0 1 6.5 8z"/></svg>Số lượng và báo giá</h4>
+            <div class="field-grid">
+              <div class="field">
+                <label for="field_number_of_persons">Số lượng khách<code>{{number_of_persons}}</code></label>
+                <input id="field_number_of_persons" name="number_of_persons" type="number" min="0" step="1" placeholder="Ví dụ: 200" autocomplete="off">
+              </div>
+              <div class="field">
+                <label for="priceCurrency">Đơn vị tiền tệ (áp dụng cho đơn giá)</label>
+                <select id="priceCurrency">
+                  <option value="VND">VND</option>
+                  <option value="USD">USD</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="field_unit_price">Đơn giá<code>{{unit_price}}</code></label>
+                <input id="field_unit_price" name="unit_price" type="text" inputmode="numeric" placeholder="Ví dụ: 1,000,000" autocomplete="off">
+              </div>
+              <div class="field">
+                <label for="field_LED_unit_price">Đơn giá màn hình LED<code>{{LED_unit_price}}</code></label>
+                <input id="field_LED_unit_price" name="LED_unit_price" type="text" inputmode="numeric" placeholder="Ví dụ: 5,000,000" autocomplete="off">
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h3 class="group-title"><svg class="group-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 4a2 2 0 0 0-2 2v1H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3V6a2 2 0 0 0-2-2H9zm0 2h6v1H9V6z"/></svg>Thông tin nhân viên kinh doanh</h3>
           <div class="field-grid">
             <div class="field is-unused" style="grid-column: 1 / -1" title="Biến này chưa xuất hiện trong contract-template.docx hiện tại.">
               <label for="segment_sale_rep_fullname">Danh xưng và tên sale<code>{{sale_rep_fullname}}</code></label>

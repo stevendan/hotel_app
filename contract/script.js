@@ -37,16 +37,189 @@ const VARIABLES = [
   { name: "returning_agreement_year",         meaning: "Năm hạn gửi lại hợp đồng cho khách sạn" },
   { name: "sale_rep_fullname",                meaning: "Danh xưng và tên sale" },
   { name: "sale_rep_title_en",                meaning: "Chức vụ sale Tiếng Anh" },
-  { name: "sale_rep_title_vi",                meaning: "Chức vụ sale Tiếng Việt" }
+  { name: "sale_rep_title_vi",                meaning: "Chức vụ sale Tiếng Việt" },
+  { name: "event_setup_type",                 meaning: "Kiểu bố trí sự kiện" },
+  { name: "event_start_time",                 meaning: "Giờ bắt đầu sự kiện" },
+  { name: "event_end_time",                   meaning: "Giờ kết thúc sự kiện" },
+  { name: "meal_setup_type",                  meaning: "Kiểu bố trí bữa ăn" },
+  { name: "meal_venue",                       meaning: "Địa điểm dùng bữa" },
+  { name: "meal_start_time",                  meaning: "Giờ bắt đầu bữa ăn" },
+  { name: "meal_end_time",                    meaning: "Giờ kết thúc bữa ăn" },
+  { name: "morning_tea_break_start_time",     meaning: "Giờ bắt đầu tiệc trà buổi sáng" },
+  { name: "morning_tea_break_end_time",       meaning: "Giờ kết thúc tiệc trà buổi sáng" },
+  { name: "afternoon_tea_break_start_time",   meaning: "Giờ bắt đầu tiệc trà buổi chiều" },
+  { name: "afternoon_tea_break_end_time",     meaning: "Giờ kết thúc tiệc trà buổi chiều" },
+  { name: "tea_break_venue",                  meaning: "Địa điểm tiệc trà (tea break)" },
+  { name: "number_of_persons",                meaning: "Số lượng khách" },
+  { name: "unit_price",                       meaning: "Đơn giá" },
+  { name: "LED_unit_price",                   meaning: "Đơn giá màn hình LED" }
 ];
 
 const fields = new Map();
 let variablesByName = new Map();
 let selectedTemplateBuffer = null;
+let criteriaTemplateFile = null;
 let extractAbortController = null;
+
+// Thư mục và danh sách file mẫu có sẵn. Tên file theo cấu trúc:
+// {venue}_{day-type}_{package-type}_{meal-type}.docx
+const TEMPLATE_DIR = "template";
+const TEMPLATE_FILES = [
+  "Ballroom_fullday_package_lunch.docx",
+  "Ballroom_fullday_package_nolunch.docx",
+  "Ballroom_fullday_room-rental_nomeal.docx",
+  "Ballroom_halfday-afternoon_package_dinner.docx",
+  "Ballroom_halfday-afternoon_package_lunch.docx",
+  "Ballroom_halfday-afternoon_package_nomeal.docx",
+  "Ballroom_halfday-morning_package_lunch.docx",
+  "Ballroom_halfday-morning_package_nomeal.docx",
+  "Ballroom_halfday_room-rental_nomeal.docx",
+  "Ballroom_YEP_package1_dinner.docx",
+  "Ballroom_YEP_package1_lunch.docx",
+  "Ballroom_YEP_package2_dinner(editting).docx",
+  "Ballroom_YEP_package2_lunch.docx",
+  "Ballroom_YEP_package3_dinner(editting).docx",
+  "Ballroom_YEP_package3_lunch(editting).docx",
+  "Lotus-Apricot_fullday_package_lunch.docx",
+  "Lotus-Apricot_fullday_package_nomeal.docx",
+  "Lotus-Apricot_fullday_room-rental_nomeal.docx",
+  "Lotus-Apricot_halfday-afternoon_package_dinner.docx",
+  "Lotus-Apricot_halfday-afternoon_package_lunch.docx",
+  "Lotus-Apricot_halfday-afternoon_package_nomeal.docx",
+  "Lotus-Apricot_halfday-morning_package_lunch.docx",
+  "Lotus-Apricot_halfday-morning_package_nomeal.docx",
+  "Lotus-Apricot_halfday_room-rental_nomeal.docx",
+  "Lotus-Apricot_YEP_package1_dinner.docx",
+  "Lotus-Apricot_YEP_package1_lunch.docx",
+  "Orchid_fullday_package_lunch.docx",
+  "Orchid_fullday_package_nomeal.docx",
+  "Orchid_fullday_room-rental_nomeal.docx",
+  "Orchid_halfday-afternoon_package_dinner.docx",
+  "Orchid_halfday-afternoon_package_lunch.docx",
+  "Orchid_halfday-afternoon_package_nomeal.docx",
+  "Orchid_halfday-morning_package_lunch.docx",
+  "Orchid_halfday-morning_package_nomeal.docx",
+  "Orchid_halfday_room-rental_nomeal.docx",
+  "Orchid_YEP_package1_dinner.docx",
+  "Orchid_YEP_package1_lunch.docx"
+];
+
+// Các tiêu chí chọn mẫu và nhãn hiển thị.
+const TEMPLATE_CRITERIA = {
+  venue: {
+    selectId: "criteriaVenue",
+    options: [
+      { value: "Ballroom", label: "Ballroom" },
+      { value: "Lotus",    label: "Lotus" },
+      { value: "Apricot",  label: "Apricot" },
+      { value: "Orchid",   label: "Orchid" }
+    ]
+  },
+  day: {
+    selectId: "criteriaDay",
+    options: [
+      { value: "fullday",           label: "Cả ngày (fullday)" },
+      { value: "halfday",           label: "Nửa ngày (halfday)" },
+      { value: "halfday-morning",   label: "Nửa ngày sáng" },
+      { value: "halfday-afternoon", label: "Nửa ngày chiều" },
+      { value: "YEP",               label: "YEP (tiệc tất niên)" }
+    ]
+  },
+  pkg: {
+    selectId: "criteriaPackage",
+    options: [
+      { value: "package",     label: "Trọn gói (package)" },
+      { value: "room-rental", label: "Thuê phòng (room-rental)" },
+      { value: "package1",    label: "Gói 1 (package1)" },
+      { value: "package2",    label: "Gói 2 (package2)" },
+      { value: "package3",    label: "Gói 3 (package3)" }
+    ]
+  },
+  meal: {
+    selectId: "criteriaMeal",
+    options: [
+      { value: "lunch",  label: "Ăn trưa (lunch)" },
+      { value: "dinner", label: "Ăn tối (dinner)" },
+      { value: "nomeal", label: "Không kèm bữa ăn (nomeal)" }
+    ]
+  }
+};
+
+// Lotus và Apricot dùng chung mẫu có phần đầu là "Lotus-Apricot".
+function mapVenueToPrefix(venue) {
+  return venue === "Lotus" || venue === "Apricot" ? "Lotus-Apricot" : venue;
+}
+
+// Tách tên file mẫu thành các thành phần tiêu chí.
+function parseTemplateName(file) {
+  const editing = /\(editting\)/i.test(file);
+  const base = file.replace(/\.docx$/i, "").replace(/\s*\(editting\)\s*$/i, "");
+  const [venue, day, pkg, meal] = base.split("_");
+  return { venue, day, pkg, meal, editing, file };
+}
+
+const TEMPLATE_RECORDS = TEMPLATE_FILES.map(parseTemplateName);
+
+// "nomeal" khớp cả token "nomeal" lẫn "nolunch" trong tên file.
+function mealMatches(recordMeal, wanted) {
+  if (recordMeal === wanted) return true;
+  return wanted === "nomeal" && (recordMeal === "nomeal" || recordMeal === "nolunch");
+}
+
+// Tìm file mẫu phù hợp nhất với bộ tiêu chí đã chọn.
+function resolveTemplateFile(criteria) {
+  const venue = mapVenueToPrefix(criteria.venue);
+  const matches = TEMPLATE_RECORDS.filter(r =>
+    r.venue === venue &&
+    r.day === criteria.day &&
+    r.pkg === criteria.pkg &&
+    mealMatches(r.meal, criteria.meal));
+  if (!matches.length) return null;
+  return matches.find(r => !r.editing) || matches[0];
+}
 
 // Các trường luôn hiển thị và lưu ở dạng chữ IN HOA.
 const UPPERCASE_FIELDS = new Set(["client_company_name_en", "client_company_name_vi"]);
+
+// Trường thời gian (xuất ra dạng h:mm, ví dụ 9:00) và trường giá tiền.
+const TIME_FIELDS = new Set([
+  "event_start_time", "event_end_time",
+  "meal_start_time", "meal_end_time",
+  "morning_tea_break_start_time", "morning_tea_break_end_time",
+  "afternoon_tea_break_start_time", "afternoon_tea_break_end_time"
+]);
+const PRICE_FIELDS = new Set(["unit_price", "LED_unit_price"]);
+
+// "09:00" -> "9:00" (bỏ số 0 ở đầu giờ).
+function formatTimeValue(value) {
+  const match = value.match(/^(\d{1,2}):(\d{2})/);
+  return match ? `${Number(match[1])}:${match[2]}` : value;
+}
+
+// Định dạng số tiền có dấu phẩy phân tách hàng nghìn.
+function formatPriceInput(input) {
+  const digits = input.value.replace(/\D/g, "");
+  input.value = digits ? Number(digits).toLocaleString("en-US") : "";
+}
+
+// Chuẩn hóa ô giờ về định dạng 24 giờ HH:MM (chấp nhận "9:0", "930", "9.30"...).
+function normalizeTimeInput(input) {
+  let value = input.value.trim();
+  if (!value) { clearFieldInvalid(input); return; }
+  let digits = value.replace(/\D/g, "");
+  if (digits.length === 3) digits = "0" + digits;
+  if (digits.length === 4) value = `${digits.slice(0, 2)}:${digits.slice(2)}`;
+  const match = value.match(/^(\d{1,2}):(\d{1,2})$/);
+  if (!match) {
+    input.classList.add("is-invalid");
+    input.setAttribute("aria-invalid", "true");
+    return;
+  }
+  const hour = Math.min(23, Number(match[1]));
+  const minute = Math.min(59, Number(match[2]));
+  input.value = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+  clearFieldInvalid(input);
+}
 
 const GEMINI_MODEL = "gemini-flash-latest";
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
@@ -137,14 +310,22 @@ function prepareDateHelpers() {
 
 function initFields() {
   fields.clear();
-  for (const input of document.querySelectorAll("#formFields input[name]")) {
+  for (const input of document.querySelectorAll("#formFields input[name], #formFields select[name]")) {
     fields.set(input.name, input);
   }
   variablesByName = new Map(VARIABLES.map(v => [v.name, v]));
 }
 
 function getValues() {
-  return Object.fromEntries(Array.from(fields, ([name, input]) => [name, input.value.trim()]));
+  const currency = $("priceCurrency")?.value || "VND";
+  const result = {};
+  for (const [name, input] of fields) {
+    let value = (input.value || "").trim();
+    if (TIME_FIELDS.has(name)) value = formatTimeValue(value);
+    else if (PRICE_FIELDS.has(name) && value) value = `${value} ${currency}`;
+    result[name] = value;
+  }
+  return result;
 }
 
 function parseWordXml(xml) {
@@ -267,6 +448,12 @@ async function processEmbeddedExcel(zip, values) {
 
 async function getTemplateBuffer() {
   if (selectedTemplateBuffer) return selectedTemplateBuffer;
+  if (criteriaTemplateFile) {
+    const url = `${TEMPLATE_DIR}/${encodeURIComponent(criteriaTemplateFile)}`;
+    const response = await fetch(url, { cache: "no-store" });
+    if (!response.ok) throw new Error(`Không tìm thấy ${criteriaTemplateFile}.`);
+    return response.arrayBuffer();
+  }
   const response = await fetch(DEFAULT_TEMPLATE, { cache: "no-store" });
   if (!response.ok) throw new Error(`Không tìm thấy ${DEFAULT_TEMPLATE}.`);
   return response.arrayBuffer();
@@ -386,7 +573,7 @@ async function generateContract() {
     try {
       buffer = await getTemplateBuffer();
     } catch (error) {
-      throw new Error(`Không thể tự mở ${DEFAULT_TEMPLATE}. Hãy bấm “Chọn biểu mẫu khác” để chọn file mẫu thủ công.`);
+      throw new Error(error?.message || `Không thể mở biểu mẫu. Hãy chọn lại tiêu chí hoặc bấm “Chọn file mẫu thủ công”.`);
     }
 
     const zip = await window.JSZip.loadAsync(buffer);
@@ -464,6 +651,26 @@ function fillSampleData() {
     deposit_percent: "50"
   };
   for (const [name, value] of Object.entries(sample)) setFieldValue(name, value);
+
+  const eventSample = {
+    event_setup_type: "Banquet",
+    meal_setup_type: "Banquet",
+    event_start_time: "08:00",
+    event_end_time: "17:00",
+    meal_start_time: "11:30",
+    meal_end_time: "13:30",
+    morning_tea_break_start_time: "09:00",
+    morning_tea_break_end_time: "09:30",
+    afternoon_tea_break_start_time: "15:00",
+    afternoon_tea_break_end_time: "15:30",
+    tea_break_venue: "Pre-function area",
+    number_of_persons: "200"
+  };
+  for (const [name, value] of Object.entries(eventSample)) setFieldValue(name, value);
+  const unitPrice = fields.get("unit_price");
+  if (unitPrice) { unitPrice.value = "1000000"; formatPriceInput(unitPrice); }
+  const ledPrice = fields.get("LED_unit_price");
+  if (ledPrice) { ledPrice.value = "5000000"; formatPriceInput(ledPrice); }
 
   const today = new Date();
   const addDays = days => {
@@ -778,11 +985,205 @@ async function translateAddressToEnglish() {
   }
 }
 
+function getCriteriaSelection() {
+  return {
+    venue: $(TEMPLATE_CRITERIA.venue.selectId).value,
+    day: $(TEMPLATE_CRITERIA.day.selectId).value,
+    pkg: $(TEMPLATE_CRITERIA.pkg.selectId).value,
+    meal: $(TEMPLATE_CRITERIA.meal.selectId).value
+  };
+}
+
+// Cập nhật file mẫu và trạng thái dựa trên tiêu chí đang chọn.
+function updateResolvedTemplate() {
+  const info = $("templateResolved");
+  const resolved = resolveTemplateFile(getCriteriaSelection());
+  if (resolved) {
+    criteriaTemplateFile = resolved.file;
+    info.className = "template-resolved is-ok";
+    info.textContent = `Mẫu phù hợp: ${resolved.file}` + (resolved.editing ? " (bản đang chỉnh sửa)" : "");
+    $("generateBtn").disabled = false;
+  } else {
+    criteriaTemplateFile = null;
+    info.className = "template-resolved is-warn";
+    info.textContent = "Không tìm thấy mẫu phù hợp với các tiêu chí đã chọn.";
+    $("generateBtn").disabled = true;
+  }
+}
+
+// Khi đổi tiêu chí thì bỏ file mẫu chọn thủ công (nếu có) để tiêu chí được ưu tiên.
+function onCriteriaChange() {
+  if (selectedTemplateBuffer) {
+    selectedTemplateBuffer = null;
+    $("templateName").textContent = "";
+  }
+  updateMealVenueOption();
+  updateResolvedTemplate();
+}
+
+// Tùy chọn "theo sảnh" (data-venue-option) của các select địa điểm cập nhật theo loại sảnh đang chọn.
+function updateMealVenueOption() {
+  const venue = $(TEMPLATE_CRITERIA.venue.selectId)?.value || "";
+  for (const opt of document.querySelectorAll('#formFields option[data-venue-option="true"]')) {
+    opt.value = venue;
+    opt.textContent = venue || "—";
+  }
+}
+
+// Giờ bắt đầu/kết thúc sự kiện mặc định theo Thời lượng.
+const DAY_EVENT_TIME_DEFAULTS = {
+  "fullday":           ["08:00", "17:00"],
+  "halfday-morning":   ["08:00", "12:00"],
+  "halfday-afternoon": ["13:30", "17:30"],
+  "YEP":               ["10:00", "14:00"]
+};
+
+function applyEventTimeDefaults() {
+  const preset = DAY_EVENT_TIME_DEFAULTS[$(TEMPLATE_CRITERIA.day.selectId)?.value];
+  if (!preset) return;
+  const [start, end] = preset;
+  const startInput = fields.get("event_start_time");
+  const endInput = fields.get("event_end_time");
+  if (startInput) { startInput.value = start; clearFieldInvalid(startInput); }
+  if (endInput) { endInput.value = end; clearFieldInvalid(endInput); }
+}
+
+// Giờ bắt đầu/kết thúc bữa ăn mặc định theo Bữa ăn.
+const MEAL_TIME_DEFAULTS = {
+  "lunch":  ["12:00", "13:30"],
+  "dinner": ["18:00", "22:00"]
+};
+
+function applyMealTimeDefaults() {
+  const preset = MEAL_TIME_DEFAULTS[$(TEMPLATE_CRITERIA.meal.selectId)?.value];
+  if (!preset) return;
+  const [start, end] = preset;
+  const startInput = fields.get("meal_start_time");
+  const endInput = fields.get("meal_end_time");
+  if (startInput) { startInput.value = start; clearFieldInvalid(startInput); }
+  if (endInput) { endInput.value = end; clearFieldInvalid(endInput); }
+}
+
+// Ẩn nhóm "Bữa ăn" khi không kèm bữa ăn (nomeal).
+function updateMealFieldsVisibility() {
+  const isNoMeal = $(TEMPLATE_CRITERIA.meal.selectId)?.value === "nomeal";
+  const subgroup = fields.get("meal_start_time")?.closest(".subgroup");
+  if (subgroup) subgroup.hidden = isNoMeal;
+}
+
+// Ẩn nhóm "Tiệc trà" khi gói dịch vụ là thuê phòng (room-rental).
+function updateTeaBreakVisibility() {
+  const isRoomRental = $(TEMPLATE_CRITERIA.pkg.selectId)?.value === "room-rental";
+  const subgroup = fields.get("morning_tea_break_start_time")?.closest(".subgroup");
+  if (subgroup) subgroup.hidden = isRoomRental;
+}
+
+// Điều chỉnh ô "Bữa ăn" theo gói dịch vụ:
+// - room-rental: buộc nomeal và khóa.
+// - package1/2/3: cho chọn nhưng bỏ tùy chọn nomeal.
+// - còn lại: mở khóa, đủ tùy chọn.
+function updateMealCriteriaForPackage() {
+  const mealSelect = $(TEMPLATE_CRITERIA.meal.selectId);
+  if (!mealSelect) return;
+  const pkg = $(TEMPLATE_CRITERIA.pkg.selectId)?.value;
+  const isRoomRental = pkg === "room-rental";
+  const hideNomeal = pkg === "package1" || pkg === "package2" || pkg === "package3";
+
+  const nomealOption = Array.from(mealSelect.options).find(o => o.value === "nomeal");
+  if (nomealOption) {
+    nomealOption.hidden = hideNomeal;
+    nomealOption.disabled = hideNomeal;
+  }
+  if (isRoomRental) {
+    mealSelect.value = "nomeal";
+    mealSelect.disabled = true;
+  } else {
+    mealSelect.disabled = false;
+    if (hideNomeal && mealSelect.value === "nomeal") mealSelect.value = "lunch";
+  }
+}
+
+// Giới hạn Thời lượng theo gói dịch vụ.
+// - package (trọn gói): cả ngày, nửa ngày sáng, nửa ngày chiều.
+// - room-rental (thuê phòng): cả ngày, nửa ngày.
+// - package1/2/3: chỉ YEP và khóa.
+const PACKAGE_ALLOWED_DAYS = {
+  "package":     new Set(["fullday", "halfday-morning", "halfday-afternoon"]),
+  "room-rental": new Set(["fullday", "halfday"]),
+  "package1":    new Set(["YEP"]),
+  "package2":    new Set(["YEP"]),
+  "package3":    new Set(["YEP"])
+};
+function updateDayOptionsForPackage() {
+  const daySelect = $(TEMPLATE_CRITERIA.day.selectId);
+  if (!daySelect) return;
+  const pkg = $(TEMPLATE_CRITERIA.pkg.selectId)?.value;
+  const allowed = PACKAGE_ALLOWED_DAYS[pkg];
+  for (const opt of daySelect.options) {
+    const hide = !!allowed && !allowed.has(opt.value);
+    opt.hidden = hide;
+    opt.disabled = hide;
+  }
+  if (allowed && !allowed.has(daySelect.value)) daySelect.value = [...allowed][0];
+  daySelect.disabled = pkg === "package1" || pkg === "package2" || pkg === "package3";
+}
+
+// Khởi tạo các trường chi tiết sự kiện: địa điểm dùng bữa và định dạng giá tiền.
+function initEventDetailFields() {
+  updateMealVenueOption();
+  applyEventTimeDefaults();
+  applyMealTimeDefaults();
+  updateMealCriteriaForPackage();
+  updateDayOptionsForPackage();
+  updateMealFieldsVisibility();
+  updateTeaBreakVisibility();
+  $(TEMPLATE_CRITERIA.day.selectId)?.addEventListener("change", applyEventTimeDefaults);
+  $(TEMPLATE_CRITERIA.meal.selectId)?.addEventListener("change", () => {
+    applyMealTimeDefaults();
+    updateMealFieldsVisibility();
+  });
+  $(TEMPLATE_CRITERIA.pkg.selectId)?.addEventListener("change", () => {
+    updateMealCriteriaForPackage();
+    updateDayOptionsForPackage();
+    applyEventTimeDefaults();
+    applyMealTimeDefaults();
+    updateMealFieldsVisibility();
+    updateTeaBreakVisibility();
+    updateResolvedTemplate();
+  });
+  for (const name of PRICE_FIELDS) {
+    const input = fields.get(name);
+    if (input) input.addEventListener("input", () => formatPriceInput(input));
+  }
+  for (const name of TIME_FIELDS) {
+    const input = fields.get(name);
+    if (input) input.addEventListener("change", () => normalizeTimeInput(input));
+  }
+}
+
+function initTemplateSelector() {
+  for (const config of Object.values(TEMPLATE_CRITERIA)) {
+    const select = $(config.selectId);
+    if (!select) continue;
+    select.innerHTML = "";
+    for (const opt of config.options) {
+      const option = document.createElement("option");
+      option.value = opt.value;
+      option.textContent = opt.label;
+      select.append(option);
+    }
+    select.addEventListener("change", onCriteriaChange);
+  }
+  updateResolvedTemplate();
+}
+
 async function initialize() {
   initFields();
   prepareDateHelpers();
   initDatePickers();
   initSaleRepPicker();
+  initTemplateSelector();
+  initEventDetailFields();
   $("generateBtn").disabled = false;
 
   const lookupBtn = $("lookupVatBtn");
@@ -805,7 +1206,8 @@ async function initialize() {
     try {
       selectedTemplateBuffer = await file.arrayBuffer();
       $("templateName").textContent = `Đang dùng: ${file.name}`;
-      setStatus("Đã chọn biểu mẫu mới. Hệ thống sẽ kiểm tra các biến của mẫu này khi xuất file.", "info");
+      $("generateBtn").disabled = false;
+      setStatus("Đã chọn biểu mẫu thủ công. Hệ thống sẽ kiểm tra các biến của mẫu này khi xuất file.", "info");
     } catch (error) {
       selectedTemplateBuffer = null;
       setStatus("Không thể đọc file mẫu đã chọn.", "error");

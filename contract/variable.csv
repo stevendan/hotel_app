@@ -28,3 +28,18 @@ variable,ý nghĩa
 {{sale_rep_fullname}},Danh xưng và tên sale
 {{sale_rep_title_en}},Chức vụ sale Tiếng Anh
 {{sale_rep_title_vi}},Chức vụ sale Tiếng Việt
+{{event_setup_type}},Kiểu bố trí sự kiện
+{{event_start_time}},Giờ bắt đầu sự kiện
+{{event_end_time}},Giờ kết thúc sự kiện
+{{meal_setup_type}},Kiểu bố trí bữa ăn
+{{meal_venue}},Địa điểm dùng bữa
+{{meal_start_time}},Giờ bắt đầu bữa ăn
+{{meal_end_time}},Giờ kết thúc bữa ăn
+{{morning_tea_break_start_time}},Giờ bắt đầu tiệc trà buổi sáng
+{{morning_tea_break_end_time}},Giờ kết thúc tiệc trà buổi sáng
+{{afternoon_tea_break_start_time}},Giờ bắt đầu tiệc trà buổi chiều
+{{afternoon_tea_break_end_time}},Giờ kết thúc tiệc trà buổi chiều
+{{tea_break_venue}},Địa điểm tiệc trà (tea break)
+{{number_of_persons}},Số lượng khách
+{{unit_price}},Đơn giá
+{{LED_unit_price}},Đơn giá màn hình LED

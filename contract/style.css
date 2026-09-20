@@ -72,6 +72,70 @@ body {
 .template-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 9px; }
 .template-name { color: var(--muted); font-size: 12px; }
 
+.template-card {
+  padding: 20px 22px;
+  border-left: 4px solid var(--gold);
+}
+
+.template-card-head h2 { font-size: 17px; color: var(--navy); }
+.template-card-head p { margin: 5px 0 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
+.template-card-head code {
+  color: #6a521b;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12px;
+}
+
+.criteria-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.criteria-field { display: flex; flex-direction: column; min-width: 0; }
+.criteria-field > span {
+  margin: 0 0 6px;
+  color: #475467;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.criteria-field select {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.criteria-field select:focus {
+  outline: 0;
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(21, 53, 95, .13);
+}
+
+.template-resolved {
+  margin: 14px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+.template-resolved.is-ok { color: #1f7a4d; }
+.template-resolved.is-warn { color: #b42318; }
+
+.template-override {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+}
+
 .card-heading {
   display: flex;
   justify-content: space-between;
@@ -104,6 +168,19 @@ body {
 .group-title {
   margin: 0 0 13px;
   font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.group-icon {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  padding: 3px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, .6);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .05);
 }
 
 .form-groups > section:nth-child(1) .group-title { color: #2d5499; }
@@ -113,6 +190,30 @@ body {
 .form-groups > section:nth-child(n+5) .group-title { color: #475467; }
 
 .group-description { margin: -7px 0 13px; color: var(--muted); font-size: 12px; }
+
+.subgroup { margin-top: 16px; }
+.subgroup:first-of-type { margin-top: 4px; }
+
+.subgroup-title {
+  margin: 0 0 10px;
+  padding-bottom: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #475467;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  border-bottom: 1px dashed var(--line);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.subgroup-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  color: var(--gold);
+}
 
 .field-grid {
   display: grid;
@@ -151,6 +252,24 @@ body {
   border: 1px solid #cbd5e1;
   border-radius: 7px;
   font: inherit;
+}
+
+.field select {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.field select:focus {
+  outline: 0;
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(21, 53, 95, .13);
 }
 
 .field input:focus {
