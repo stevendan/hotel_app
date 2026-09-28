@@ -404,6 +404,53 @@
         <input id="rememberKey" type="checkbox"> Ghi nhớ API key trên trình duyệt này
       </label>
 
+      <details id="keyGuide" class="key-guide">
+        <summary>Chưa có API key? Xem hướng dẫn tạo key miễn phí (khoảng 2 phút)</summary>
+        <div class="key-guide-body">
+          <p class="key-guide-note">Bạn chỉ cần một tài khoản Google (Gmail). Việc tạo key <strong>miễn phí</strong>, không cần thẻ thanh toán.</p>
+          <ol class="key-guide-steps">
+            <li>
+              <strong>Mở trang Google AI Studio:</strong>
+              truy cập <a href="https://aistudio.google.com" target="_blank" rel="noopener noreferrer">https://aistudio.google.com</a>
+              (trang sẽ mở trong tab mới, hộp thoại này vẫn được giữ nguyên).
+            </li>
+            <li>
+              <strong>Đăng nhập tài khoản Google:</strong>
+              nếu được hỏi, bấm <em>Sign in</em> và đăng nhập bằng Gmail. Nên dùng Gmail cá nhân, vì tài khoản email công ty đôi khi bị quản trị viên chặn tính năng này.
+            </li>
+            <li>
+              <strong>Đồng ý điều khoản (chỉ lần đầu):</strong>
+              nếu hiện hộp thoại điều khoản sử dụng, đánh dấu vào ô đồng ý rồi bấm <em>Continue</em> / <em>I accept</em>.
+            </li>
+            <li>
+              <strong>Vào mục API key:</strong>
+              bấm nút <em>Get API key</em> ở menu bên trái (hoặc góc trên màn hình). Bạn cũng có thể vào thẳng
+              <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">aistudio.google.com/apikey</a>.
+            </li>
+            <li>
+              <strong>Tạo key mới:</strong>
+              bấm nút <em>Create API key</em>. Nếu được yêu cầu chọn dự án (project), chọn dự án có sẵn trong danh sách hoặc bấm <em>Create project</em> để tạo mới (đặt tên bất kỳ, ví dụ "Hotel Contract"), rồi bấm <em>Create key</em>.
+            </li>
+            <li>
+              <strong>Sao chép key:</strong>
+              key vừa tạo là một chuỗi dài bắt đầu bằng <code>AIza</code>. Bấm biểu tượng sao chép (<em>Copy</em>) bên cạnh key. Nếu key bị ẩn, bấm vào tên key để hiện đầy đủ rồi sao chép.
+            </li>
+            <li>
+              <strong>Dán vào đây:</strong>
+              quay lại tab này, dán key vào ô <em>Google Gemini API key</em> ở trên, đánh dấu <em>Ghi nhớ API key</em> để lần sau không phải nhập lại.
+            </li>
+          </ol>
+          <div class="key-guide-tips">
+            <strong>Lưu ý:</strong>
+            <ul>
+              <li>Không chia sẻ key cho người khác. Nếu nghi ngờ key bị lộ, quay lại trang API key, xóa key cũ và tạo key mới.</li>
+              <li>Báo lỗi <em>"API key không hợp lệ"</em>: thường do sao chép thiếu ký tự hoặc thừa khoảng trắng, hãy sao chép lại.</li>
+              <li>Gói miễn phí có giới hạn số lượt dùng mỗi phút/mỗi ngày. Nếu báo hết hạn mức, chờ một lúc rồi thử lại.</li>
+            </ul>
+          </div>
+        </div>
+      </details>
+
       <label class="dialog-field">
         <span>Nội dung tin nhắn</span>
         <textarea id="messageContent" rows="10" placeholder="Dán nội dung tin nhắn/email của khách hàng vào đây…"></textarea>

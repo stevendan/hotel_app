@@ -862,6 +862,9 @@ function openExtractDialog() {
     keyInput.value = savedKey;
     if (rememberInput) rememberInput.checked = true;
   }
+  // Tự mở hướng dẫn tạo key khi người dùng chưa có key.
+  const keyGuide = $("keyGuide");
+  if (keyGuide) keyGuide.open = !keyInput?.value;
   setExtractStatus("");
   setExtractLoading(false);
   const extractBtn = $("extractBtn");
