@@ -639,7 +639,7 @@ function fillSampleData() {
     client_company_name_vi: "Công ty TNHH Du lịch và Sự kiện Skyline",
     client_representative_name_en: "Mr. Nguyen Van An",
     client_representative_name_vi: "Ông Nguyễn Văn An",
-    client_representative_name_en_vi: "Mr./Ông Nguyen Van An",
+    client_representative_name_en_vi: "Mr/Ông Nguyễn Văn An",
     client_representative_title_en: "General Director",
     client_representative_title_vi: "Tổng Giám đốc",
     client_address_en: "12 Nguyen Hue Street, District 1, Ho Chi Minh City",
@@ -750,6 +750,8 @@ async function lookupClientByVatCode() {
     if (data.name) setFieldValue("client_company_name_vi", data.name);
     if (data.internationalName) setFieldValue("client_company_name_en", data.internationalName);
     if (data.address) setFieldValue("client_address_vi", data.address);
+    if (!data.internationalName) syncBilingualField("client_company_name_vi");
+    if (data.address) syncBilingualField("client_address_vi");
 
     const filled = ["Tên công ty tiếng Việt"];
     if (data.internationalName) filled.push("Tên công ty tiếng Anh");
@@ -831,7 +833,7 @@ function buildExtractionPrompt() {
     "Quy tắc:",
     "- Ngày (các trường *_date) trả về theo định dạng YYYY-MM-DD.",
     "- deposit_percent chỉ là con số (0-100), không kèm ký tự %.",
-    "- client_representative_name_en_vi là tên đầy đủ kèm danh xưng dạng song ngữ, ví dụ \"Mr./Ông Nguyen Van An\".",
+    "- client_representative_name_en_vi là tên đầy đủ kèm danh xưng dạng song ngữ \"Mr/Ông\" hoặc \"Ms/Bà\", ưu tiên tên tiếng Việt, ví dụ \"Mr/Ông Nguyễn Văn An\".",
     "- Mã số thuế (client_VAT_code) chỉ gồm chữ số.",
     "- Không bịa thông tin. Nếu không tìm thấy thì để null.",
     "- Chỉ trả về JSON hợp lệ, không kèm giải thích."
@@ -954,6 +956,7 @@ async function extractInformation() {
       return;
     }
 
+    fillMissingTranslations();
     clearInvalidFields();
     closeExtractDialog();
     setStatus(`Đã trích xuất và điền ${filled} trường từ tin nhắn. Hãy kiểm tra lại trước khi tạo hợp đồng.`, "success");
@@ -969,23 +972,113 @@ async function extractInformation() {
   }
 }
 
-// Dịch "Địa chỉ tiếng Việt" sang tiếng Anh qua endpoint dịch công khai của Google (không cần API key).
-async function translateAddressToEnglish() {
-  const viInput = fields.get("client_address_vi");
-  if (!viInput) return;
-  const text = viInput.value.trim();
-  if (!text) return;
+// Dịch văn bản qua endpoint dịch công khai của Google (không cần API key).
+async function translateText(text, from, to) {
+  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${from}&tl=${to}&dt=t&q=${encodeURIComponent(text)}`;
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error("network");
+  const data = await response.json();
+  return Array.isArray(data?.[0]) ? data[0].map(segment => segment?.[0] || "").join("").trim() : "";
+}
 
-  try {
-    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=vi&tl=en&dt=t&q=${encodeURIComponent(text)}`;
-    const response = await fetch(url, { cache: "no-store" });
-    if (!response.ok) throw new Error("network");
-    const data = await response.json();
-    const translated = Array.isArray(data?.[0]) ? data[0].map(segment => segment?.[0] || "").join("") : "";
-    if (translated.trim()) setFieldValue("client_address_en", translated.trim());
-  } catch (error) {
-    console.error(error);
+// Các cặp trường song ngữ: khi một bên thay đổi thì tự dịch lại bên còn lại.
+const BILINGUAL_PAIRS = [
+  { en: "client_company_name_en",         vi: "client_company_name_vi" },
+  { en: "client_representative_name_en",  vi: "client_representative_name_vi", isPersonName: true },
+  { en: "client_representative_title_en", vi: "client_representative_title_vi" },
+  { en: "client_address_en",              vi: "client_address_vi" }
+];
+const pairVersions = new Map();
+
+const HONORIFIC_GENDERS = {
+  "mr": "male", "mister": "male", "ông": "male",
+  "ms": "female", "mrs": "female", "miss": "female", "madam": "female", "mdm": "female", "bà": "female"
+};
+const HONORIFIC_LABELS = {
+  male:   { en: "Mr.", vi: "Ông", en_vi: "Mr/Ông" },
+  female: { en: "Ms.", vi: "Bà",  en_vi: "Ms/Bà" }
+};
+
+// Tách danh xưng khỏi tên: "Mr./Ông Nguyễn Văn An" -> { gender: "male", name: "Nguyễn Văn An" }.
+function parsePersonName(value) {
+  let name = value.trim();
+  let gender = null;
+  for (;;) {
+    const match = name.match(/^([^\s./]+)\.?\s*\/?\s*/);
+    const token = match?.[1].normalize("NFC").toLowerCase();
+    if (!match || !HONORIFIC_GENDERS[token] || match[0].length >= name.length) break;
+    gender = gender || HONORIFIC_GENDERS[token];
+    name = name.slice(match[0].length);
   }
+  return { gender, name: name.trim() };
+}
+
+function formatPersonName(gender, name, lang) {
+  const label = gender ? HONORIFIC_LABELS[gender][lang] : "";
+  return [label, name].filter(Boolean).join(" ");
+}
+
+function removeDiacritics(text) {
+  return text.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D");
+}
+
+// Tên người: danh xưng đổi theo bảng (Mr ↔ Ông, Ms ↔ Bà), tên VI -> EN chỉ bỏ dấu,
+// tên EN -> VI dùng Google Dịch để thêm dấu nhưng chỉ nhận kết quả nếu bỏ dấu vẫn khớp tên gốc.
+async function translatePersonName(text, from, to) {
+  const { gender, name } = parsePersonName(text);
+  let translatedName = name;
+  if (name && to === "en") {
+    translatedName = removeDiacritics(name);
+  } else if (name && to === "vi") {
+    const candidate = await translateText(name, from, to);
+    const sameName = removeDiacritics(candidate).toLowerCase() === removeDiacritics(name).toLowerCase();
+    if (candidate && sameName) translatedName = candidate;
+  }
+  return formatPersonName(gender, translatedName, to);
+}
+
+// "Tên đầy đủ và danh xưng Tiếng Anh-Việt": Mr/Ông hoặc Ms/Bà + tên, ưu tiên tên tiếng Việt.
+function updateCombinedRepresentativeName() {
+  const en = parsePersonName(fields.get("client_representative_name_en")?.value || "");
+  const vi = parsePersonName(fields.get("client_representative_name_vi")?.value || "");
+  const name = vi.name || en.name;
+  if (name) setFieldValue("client_representative_name_en_vi", formatPersonName(vi.gender || en.gender, name, "en_vi"));
+}
+
+async function syncBilingualPair(pair, fromLang) {
+  const toLang = fromLang === "en" ? "vi" : "en";
+  const text = (fields.get(pair[fromLang])?.value || "").trim();
+  const version = (pairVersions.get(pair) || 0) + 1;
+  pairVersions.set(pair, version);
+
+  if (text) {
+    try {
+      const translated = pair.isPersonName
+        ? await translatePersonName(text, fromLang, toLang)
+        : await translateText(UPPERCASE_FIELDS.has(pair[fromLang]) ? text.toLowerCase() : text, fromLang, toLang);
+      // Bỏ qua kết quả cũ nếu người dùng đã sửa lại cặp trường này trong lúc chờ dịch.
+      if (translated && pairVersions.get(pair) === version) setFieldValue(pair[toLang], translated);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  if (pair.isPersonName && pairVersions.get(pair) === version) updateCombinedRepresentativeName();
+}
+
+function syncBilingualField(name) {
+  const pair = BILINGUAL_PAIRS.find(p => p.en === name || p.vi === name);
+  if (pair) syncBilingualPair(pair, pair.en === name ? "en" : "vi");
+}
+
+// Sau khi điền tự động (AI), dịch bổ sung các cặp mới có một bên.
+function fillMissingTranslations() {
+  for (const pair of BILINGUAL_PAIRS) {
+    const hasEn = !!fields.get(pair.en)?.value.trim();
+    const hasVi = !!fields.get(pair.vi)?.value.trim();
+    if (hasEn && !hasVi) syncBilingualPair(pair, "en");
+    else if (hasVi && !hasEn) syncBilingualPair(pair, "vi");
+  }
+  updateCombinedRepresentativeName();
 }
 
 function getCriteriaSelection() {
@@ -1243,8 +1336,11 @@ async function initialize() {
     input.addEventListener("change", () => { input.value = input.value.toUpperCase(); });
   }
 
-  const addressViInput = fields.get("client_address_vi");
-  if (addressViInput) addressViInput.addEventListener("change", translateAddressToEnglish);
+  for (const pair of BILINGUAL_PAIRS) {
+    for (const lang of ["en", "vi"]) {
+      fields.get(pair[lang])?.addEventListener("change", () => syncBilingualPair(pair, lang));
+    }
+  }
 
   const openExtractBtn = $("openExtractBtn");
   if (openExtractBtn) openExtractBtn.addEventListener("click", openExtractDialog);
