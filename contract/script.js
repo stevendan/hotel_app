@@ -190,6 +190,9 @@ const TIME_FIELDS = new Set([
 ]);
 const PRICE_FIELDS = new Set(["unit_price", "LED_unit_price"]);
 
+// Trường được phép để trống khi tạo hợp đồng.
+const OPTIONAL_FIELDS = new Set(["event_setup_type"]);
+
 // "09:00" -> "9:00" (bỏ số 0 ở đầu giờ).
 function formatTimeValue(value) {
   const match = value.match(/^(\d{1,2}):(\d{2})/);
@@ -587,7 +590,7 @@ async function generateContract() {
     const requiredVariables = new Set(xmlParts.flatMap(part => Array.from(collectPlaceholders(part.xml))));
     for (const p of await collectPlaceholdersFromEmbeddedExcel(zip)) requiredVariables.add(p);
     const values = getValues();
-    const missing = Array.from(requiredVariables).filter(name => !values[name]);
+    const missing = Array.from(requiredVariables).filter(name => !values[name] && !OPTIONAL_FIELDS.has(name));
     if (missing.length) {
       markMissingFields(missing);
       const listed = missing.slice(0, 6).map(readableVariableName).join(", ");
