@@ -191,7 +191,7 @@ const TIME_FIELDS = new Set([
 const PRICE_FIELDS = new Set(["unit_price", "LED_unit_price"]);
 
 // Trường được phép để trống khi tạo hợp đồng.
-const OPTIONAL_FIELDS = new Set(["event_setup_type"]);
+const OPTIONAL_FIELDS = new Set(["event_setup_type", "tea_break_venue"]);
 
 // "09:00" -> "9:00" (bỏ số 0 ở đầu giờ).
 function formatTimeValue(value) {
