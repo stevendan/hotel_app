@@ -644,8 +644,8 @@ function fillSampleData() {
     client_company_name_en: "Skyline Travel & Events Co., Ltd",
     client_company_name_vi: "Công ty TNHH Du lịch và Sự kiện Skyline",
     client_representative_name_en: "Mr. Nguyen Van An",
-    client_representative_name_vi: "Ông Nguyễn Văn An",
-    client_representative_name_en_vi: "Mr/Ông Nguyễn Văn An",
+    client_representative_name_vi: "Ông. Nguyễn Văn An",
+    client_representative_name_en_vi: "Mr/Ông. Nguyễn Văn An",
     client_representative_title_en: "General Director",
     client_representative_title_vi: "Tổng Giám đốc",
     client_address_en: "12 Nguyen Hue Street, District 1, Ho Chi Minh City",
@@ -839,7 +839,8 @@ function buildExtractionPrompt() {
     "Quy tắc:",
     "- Ngày (các trường *_date) trả về theo định dạng YYYY-MM-DD.",
     "- deposit_percent chỉ là con số (0-100), không kèm ký tự %.",
-    "- client_representative_name_en_vi là tên đầy đủ kèm danh xưng dạng song ngữ \"Mr/Ông\" hoặc \"Ms/Bà\", ưu tiên tên tiếng Việt, ví dụ \"Mr/Ông Nguyễn Văn An\".",
+    "- client_representative_name_vi là tên đầy đủ kèm danh xưng \"Ông.\" hoặc \"Bà.\", ví dụ \"Ông. Nguyễn Văn An\".",
+    "- client_representative_name_en_vi là tên đầy đủ kèm danh xưng dạng song ngữ \"Mr/Ông.\" hoặc \"Ms/Bà.\", ưu tiên tên tiếng Việt, ví dụ \"Mr/Ông. Nguyễn Văn An\".",
     "- Mã số thuế (client_VAT_code) chỉ gồm chữ số.",
     "- Không bịa thông tin. Nếu không tìm thấy thì để null.",
     "- Chỉ trả về JSON hợp lệ, không kèm giải thích."
@@ -1001,11 +1002,11 @@ const HONORIFIC_GENDERS = {
   "ms": "female", "mrs": "female", "miss": "female", "madam": "female", "mdm": "female", "bà": "female"
 };
 const HONORIFIC_LABELS = {
-  male:   { en: "Mr.", vi: "Ông", en_vi: "Mr/Ông" },
-  female: { en: "Ms.", vi: "Bà",  en_vi: "Ms/Bà" }
+  male:   { en: "Mr.", vi: "Ông.", en_vi: "Mr/Ông." },
+  female: { en: "Ms.", vi: "Bà.",  en_vi: "Ms/Bà." }
 };
 
-// Tách danh xưng khỏi tên: "Mr./Ông Nguyễn Văn An" -> { gender: "male", name: "Nguyễn Văn An" }.
+// Tách danh xưng khỏi tên: "Mr/Ông. Nguyễn Văn An" -> { gender: "male", name: "Nguyễn Văn An" }.
 function parsePersonName(value) {
   let name = value.trim();
   let gender = null;
@@ -1043,7 +1044,7 @@ async function translatePersonName(text, from, to) {
   return formatPersonName(gender, translatedName, to);
 }
 
-// "Tên đầy đủ và danh xưng Tiếng Anh-Việt": Mr/Ông hoặc Ms/Bà + tên, ưu tiên tên tiếng Việt.
+// "Tên đầy đủ và danh xưng Tiếng Anh-Việt": Mr/Ông. hoặc Ms/Bà. + tên, ưu tiên tên tiếng Việt.
 function updateCombinedRepresentativeName() {
   const en = parsePersonName(fields.get("client_representative_name_en")?.value || "");
   const vi = parsePersonName(fields.get("client_representative_name_vi")?.value || "");
