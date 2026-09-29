@@ -192,6 +192,8 @@ const PRICE_FIELDS = new Set(["unit_price", "LED_unit_price"]);
 
 // Trường được phép để trống khi tạo hợp đồng.
 const OPTIONAL_FIELDS = new Set(["event_setup_type", "tea_break_venue"]);
+// Với Thời lượng YEP, giờ sự kiện được để trống.
+const YEP_OPTIONAL_FIELDS = new Set(["event_start_time", "event_end_time"]);
 
 // "09:00" -> "9:00" (bỏ số 0 ở đầu giờ).
 function formatTimeValue(value) {
@@ -590,7 +592,8 @@ async function generateContract() {
     const requiredVariables = new Set(xmlParts.flatMap(part => Array.from(collectPlaceholders(part.xml))));
     for (const p of await collectPlaceholdersFromEmbeddedExcel(zip)) requiredVariables.add(p);
     const values = getValues();
-    const missing = Array.from(requiredVariables).filter(name => !values[name] && !OPTIONAL_FIELDS.has(name));
+    const optional = isYepSelected() ? new Set([...OPTIONAL_FIELDS, ...YEP_OPTIONAL_FIELDS]) : OPTIONAL_FIELDS;
+    const missing = Array.from(requiredVariables).filter(name => !values[name] && !optional.has(name));
     if (missing.length) {
       markMissingFields(missing);
       const listed = missing.slice(0, 6).map(readableVariableName).join(", ");
@@ -1134,9 +1137,14 @@ const DAY_EVENT_TIME_DEFAULTS = {
   "fullday":           ["08:00", "17:00"],
   "halfday-morning":   ["08:00", "12:00"],
   "halfday-afternoon": ["13:30", "17:30"],
-  "YEP":               ["10:00", "14:00"]
+  "YEP":               ["", ""]
 };
 
+function isYepSelected() {
+  return $(TEMPLATE_CRITERIA.day.selectId)?.value === "YEP";
+}
+
+// YEP: bỏ trống giờ bắt đầu/kết thúc sự kiện, đặt kiểu bố trí sự kiện và địa điểm tiệc trà là "—".
 function applyEventTimeDefaults() {
   const preset = DAY_EVENT_TIME_DEFAULTS[$(TEMPLATE_CRITERIA.day.selectId)?.value];
   if (!preset) return;
@@ -1145,6 +1153,12 @@ function applyEventTimeDefaults() {
   const endInput = fields.get("event_end_time");
   if (startInput) { startInput.value = start; clearFieldInvalid(startInput); }
   if (endInput) { endInput.value = end; clearFieldInvalid(endInput); }
+  if (isYepSelected()) {
+    const setupSelect = fields.get("event_setup_type");
+    if (setupSelect) setupSelect.value = "";
+    const teaVenueSelect = fields.get("tea_break_venue");
+    if (teaVenueSelect) teaVenueSelect.value = "";
+  }
 }
 
 // Giờ bắt đầu/kết thúc bữa ăn mặc định theo Bữa ăn.
