@@ -20,6 +20,7 @@ const VARIABLES = [
   { name: "client_representative_name_en",    meaning: "Tên đầy đủ và danh xưng Tiếng Anh" },
   { name: "client_representative_name_vi",    meaning: "Tên đầy đủ và danh xưng Tiếng Việt" },
   { name: "client_representative_name_en_vi", meaning: "Tên đầy đủ và danh xưng Tiếng Anh-Việt" },
+  { name: "name_for_attention_of",            meaning: "Tên người liên hệ" },
   { name: "client_representative_title_en",   meaning: "Chức danh tiếng Anh" },
   { name: "client_representative_title_vi",   meaning: "Chức danh tiếng Việt" },
   { name: "client_address_en",                meaning: "Địa chỉ tiếng Anh" },
@@ -65,6 +66,12 @@ let extractAbortController = null;
 // {venue}_{day-type}_{package-type}_{meal-type}.docx
 const TEMPLATE_DIR = "template";
 const TEMPLATE_FILES = [
+  "Apricot_YEP_package1_dinner.docx",
+  "Apricot_YEP_package1_lunch.docx",
+  "Apricot_YEP_package2_dinner.docx",
+  "Apricot_YEP_package2_lunch.docx",
+  "Apricot_YEP_package3_dinner.docx",
+  "Apricot_YEP_package3_lunch.docx",
   "Ballroom_fullday_package_lunch.docx",
   "Ballroom_fullday_package_nolunch.docx",
   "Ballroom_fullday_room-rental_nomeal.docx",
@@ -76,10 +83,10 @@ const TEMPLATE_FILES = [
   "Ballroom_halfday_room-rental_nomeal.docx",
   "Ballroom_YEP_package1_dinner.docx",
   "Ballroom_YEP_package1_lunch.docx",
-  "Ballroom_YEP_package2_dinner(editting).docx",
+  "Ballroom_YEP_package2_dinner.docx",
   "Ballroom_YEP_package2_lunch.docx",
-  "Ballroom_YEP_package3_dinner(editting).docx",
-  "Ballroom_YEP_package3_lunch(editting).docx",
+  "Ballroom_YEP_package3_dinner.docx",
+  "Ballroom_YEP_package3_lunch.docx",
   "Lotus-Apricot_fullday_package_lunch.docx",
   "Lotus-Apricot_fullday_package_nomeal.docx",
   "Lotus-Apricot_fullday_room-rental_nomeal.docx",
@@ -89,8 +96,12 @@ const TEMPLATE_FILES = [
   "Lotus-Apricot_halfday-morning_package_lunch.docx",
   "Lotus-Apricot_halfday-morning_package_nomeal.docx",
   "Lotus-Apricot_halfday_room-rental_nomeal.docx",
-  "Lotus-Apricot_YEP_package1_dinner.docx",
-  "Lotus-Apricot_YEP_package1_lunch.docx",
+  "Lotus_YEP_package1_dinner.docx",
+  "Lotus_YEP_package1_lunch.docx",
+  "Lotus_YEP_package2_dinner.docx",
+  "Lotus_YEP_package2_lunch.docx",
+  "Lotus_YEP_package3_dinner.docx",
+  "Lotus_YEP_package3_lunch.docx",
   "Orchid_fullday_package_lunch.docx",
   "Orchid_fullday_package_nomeal.docx",
   "Orchid_fullday_room-rental_nomeal.docx",
@@ -101,7 +112,11 @@ const TEMPLATE_FILES = [
   "Orchid_halfday-morning_package_nomeal.docx",
   "Orchid_halfday_room-rental_nomeal.docx",
   "Orchid_YEP_package1_dinner.docx",
-  "Orchid_YEP_package1_lunch.docx"
+  "Orchid_YEP_package1_lunch.docx",
+  "Orchid_YEP_package2_dinner.docx",
+  "Orchid_YEP_package2_lunch.docx",
+  "Orchid_YEP_package3_dinner.docx",
+  "Orchid_YEP_package3_lunch.docx"
 ];
 
 // Các tiêu chí chọn mẫu và nhãn hiển thị.
@@ -145,9 +160,9 @@ const TEMPLATE_CRITERIA = {
   }
 };
 
-// Lotus và Apricot dùng chung mẫu có phần đầu là "Lotus-Apricot".
-function mapVenueToPrefix(venue) {
-  return venue === "Lotus" || venue === "Apricot" ? "Lotus-Apricot" : venue;
+// Lotus và Apricot dùng chung mẫu có phần đầu là "Lotus-Apricot" (trừ khi có mẫu riêng, ví dụ YEP).
+function venuePrefixes(venue) {
+  return venue === "Lotus" || venue === "Apricot" ? [venue, "Lotus-Apricot"] : [venue];
 }
 
 // Tách tên file mẫu thành các thành phần tiêu chí.
@@ -166,16 +181,17 @@ function mealMatches(recordMeal, wanted) {
   return wanted === "nomeal" && (recordMeal === "nomeal" || recordMeal === "nolunch");
 }
 
-// Tìm file mẫu phù hợp nhất với bộ tiêu chí đã chọn.
+// Tìm file mẫu phù hợp nhất với bộ tiêu chí đã chọn (ưu tiên mẫu riêng của sảnh).
 function resolveTemplateFile(criteria) {
-  const venue = mapVenueToPrefix(criteria.venue);
-  const matches = TEMPLATE_RECORDS.filter(r =>
-    r.venue === venue &&
-    r.day === criteria.day &&
-    r.pkg === criteria.pkg &&
-    mealMatches(r.meal, criteria.meal));
-  if (!matches.length) return null;
-  return matches.find(r => !r.editing) || matches[0];
+  for (const venue of venuePrefixes(criteria.venue)) {
+    const matches = TEMPLATE_RECORDS.filter(r =>
+      r.venue === venue &&
+      r.day === criteria.day &&
+      r.pkg === criteria.pkg &&
+      mealMatches(r.meal, criteria.meal));
+    if (matches.length) return matches.find(r => !r.editing) || matches[0];
+  }
+  return null;
 }
 
 // Các trường luôn hiển thị và lưu ở dạng chữ IN HOA.
@@ -240,6 +256,7 @@ const EXTRACTABLE_FIELDS = [
   { name: "client_representative_name_en",    type: "text" },
   { name: "client_representative_name_vi",    type: "text" },
   { name: "client_representative_name_en_vi", type: "text" },
+  { name: "name_for_attention_of",            type: "text" },
   { name: "client_representative_title_en",   type: "text" },
   { name: "client_representative_title_vi",   type: "text" },
   { name: "client_address_en",                type: "text" },
@@ -644,6 +661,7 @@ function fillSampleData() {
     client_representative_name_en: "Mr. Nguyen Van An",
     client_representative_name_vi: "Ông. Nguyễn Văn An",
     client_representative_name_en_vi: "Mr/Ông. Nguyễn Văn An",
+    name_for_attention_of: "Ms/Bà. Trần Thị Bình",
     client_representative_title_en: "General Director",
     client_representative_title_vi: "Tổng Giám đốc",
     client_address_en: "12 Nguyen Hue Street, District 1, Ho Chi Minh City",

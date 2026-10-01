@@ -10,11 +10,14 @@ variable,ý nghĩa
 {{client_representative_name_en}},Tên đầy đủ và danh xưng Tiếng Anh
 {{client_representative_name_vi}},Tên đầy đủ và danh xưng Tiếng Việt
 {{client_representative_name_en_vi}},Tên đầy đủ và danh xưng Tiếng Anh-Việt
+{{name_for_attention_of}},Tên người liên hệ
 {{client_representative_title_en}},Chức danh tiếng Anh
 {{client_representative_title_vi}},Chức danh tiếng Việt
 {{client_address_en}},Địa chỉ tiếng Anh
 {{client_address_vi}},Địa chỉ tiếng Việt
 {{client_phone}},Số điện thoại công ty khách hàng
+{{client_mobile_phone}},Số di động của khách hàng
+{{client_email}},Email của khách hàng
 {{client_VAT_code}},Mã số thuế của khách hàng
 {{deposit_percent}},Phần trăm đặt cọc
 {{request_to_settle_before_date}},Yêu cầu thanh toán trước ngày
