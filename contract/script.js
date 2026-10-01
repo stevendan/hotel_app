@@ -322,12 +322,10 @@ function initFields() {
 }
 
 function getValues() {
-  const currency = $("priceCurrency")?.value || "VND";
   const result = {};
   for (const [name, input] of fields) {
     let value = (input.value || "").trim();
     if (TIME_FIELDS.has(name)) value = formatTimeValue(value);
-    else if (PRICE_FIELDS.has(name) && value) value = `${value} ${currency}`;
     result[name] = value;
   }
   return result;
