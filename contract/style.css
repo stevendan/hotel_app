@@ -321,6 +321,34 @@ body {
   font-style: italic;
 }
 
+.contact-cluster {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+  padding: 12px 14px 14px;
+  background: rgba(21, 53, 95, .04);
+  border: 1px dashed #b8c6d8;
+  border-radius: 8px;
+}
+
+.contact-cluster .contact-name-field { grid-column: 1 / -1; }
+
+.contact-cluster-label {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding-bottom: 8px;
+  color: #475467;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  border-bottom: 1px solid #d0d9e6;
+}
+
 .field.is-unused { opacity: .74; }
 .field.is-unused input { background: #fbfcfd; }
 .field.is-unused input[readonly] {
@@ -698,5 +726,6 @@ body {
   .card-heading > p { text-align: left; }
   .quick-dates, .field-grid { grid-template-columns: 1fr; }
   .computed-cluster { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .contact-cluster { grid-template-columns: 1fr; }
   .card-body { padding: 18px; }
 }

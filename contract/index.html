@@ -140,10 +140,6 @@
               <label for="field_client_representative_name_en_vi">Tên đầy đủ và danh xưng Tiếng Anh-Việt<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{client_representative_name_en_vi}}</code></label>
               <input id="field_client_representative_name_en_vi" name="client_representative_name_en_vi" type="text" placeholder="Nhập thông tin" autocomplete="off">
             </div>
-            <div class="field" style="grid-column: 1 / -1">
-              <label for="field_name_for_attention_of">Tên người liên hệ<span class="required-mark" title="Có trong các file mẫu thư mục template">*</span><code>{{name_for_attention_of}}</code></label>
-              <input id="field_name_for_attention_of" name="name_for_attention_of" type="text" placeholder="Nhập thông tin" autocomplete="off">
-            </div>
             <div class="field">
               <label for="field_client_representative_title_en">Chức danh tiếng Anh<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{client_representative_title_en}}</code></label>
               <input id="field_client_representative_title_en" name="client_representative_title_en" type="text" placeholder="Nhập thông tin" autocomplete="off">
@@ -166,20 +162,27 @@
               <input id="field_client_phone" name="client_phone" type="tel" placeholder="Nhập thông tin" autocomplete="off">
             </div>
             <div class="field">
-              <label for="field_client_mobile_phone">Số di động của khách hàng<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{client_mobile_phone}}</code></label>
-              <input id="field_client_mobile_phone" name="client_mobile_phone" type="tel" placeholder="Nhập thông tin" autocomplete="off">
-            </div>
-            <div class="field">
-              <label for="field_client_email">Email của khách hàng<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{client_email}}</code></label>
-              <input id="field_client_email" name="client_email" type="email" placeholder="Nhập thông tin" autocomplete="off">
-            </div>
-            <div class="field">
               <label for="field_client_VAT_code">Mã số thuế của khách hàng<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{client_VAT_code}}</code></label>
               <div class="input-with-button">
                 <input id="field_client_VAT_code" name="client_VAT_code" type="text" placeholder="Nhập thông tin" autocomplete="off" inputmode="numeric">
                 <button id="lookupVatBtn" class="button button-secondary" type="button">Lấy thông tin</button>
               </div>
               <p id="lookupVatHint" class="lookup-hint" role="status" aria-live="polite"></p>
+            </div>
+            <div class="contact-cluster">
+              <p class="contact-cluster-label"><svg class="subgroup-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>Người liên hệ</p>
+              <div class="field contact-name-field">
+                <label for="field_name_for_attention_of">Tên người liên hệ<span class="required-mark" title="Có trong các file mẫu thư mục template">*</span><code>{{name_for_attention_of}}</code></label>
+                <input id="field_name_for_attention_of" name="name_for_attention_of" type="text" placeholder="Nhập thông tin" autocomplete="off">
+              </div>
+              <div class="field">
+                <label for="field_client_mobile_phone">Số di động của khách hàng<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{client_mobile_phone}}</code></label>
+                <input id="field_client_mobile_phone" name="client_mobile_phone" type="tel" placeholder="Nhập thông tin" autocomplete="off">
+              </div>
+              <div class="field">
+                <label for="field_client_email">Email của khách hàng<span class="required-mark" title="Có trong contract-template.docx">*</span><code>{{client_email}}</code></label>
+                <input id="field_client_email" name="client_email" type="email" placeholder="Nhập thông tin" autocomplete="off">
+              </div>
             </div>
           </div>
         </section>
