@@ -246,29 +246,70 @@ const GEMINI_MODEL = "gemini-flash-latest";
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 const GEMINI_KEY_STORAGE = "hta_gemini_api_key";
 
-// Các trường AI có thể trích xuất từ tin nhắn (bỏ qua trường tự tính và nhân viên sale).
-// type "date" nhận giá trị ISO YYYY-MM-DD từ AI rồi hiển thị dd/mm/yyyy.
+// Các trường AI có thể trích xuất từ tin nhắn.
+// type: text | date (AI trả ISO YYYY-MM-DD, hiển thị dd/mm/yyyy) | time (HH:MM) | price | integer
+//       | percent | select (giá trị phải có trong danh sách tùy chọn) | sale_rep (xử lý riêng).
 const EXTRACTABLE_FIELDS = [
   { name: "contract_number",                  type: "text" },
-  { name: "excecute_date",                    type: "date" },
-  { name: "client_company_name_en",           type: "text" },
-  { name: "client_company_name_vi",           type: "text" },
-  { name: "client_representative_name_en",    type: "text" },
-  { name: "client_representative_name_vi",    type: "text" },
-  { name: "client_representative_name_en_vi", type: "text" },
-  { name: "name_for_attention_of",            type: "text" },
-  { name: "client_representative_title_en",   type: "text" },
-  { name: "client_representative_title_vi",   type: "text" },
+  { name: "excecute_date",                    type: "date",     hint: "Ngày tổ chức sự kiện (Group Date), là ngày khách sử dụng dịch vụ, không phải ngày ký hợp đồng" },
+  { name: "client_company_name_en",           type: "text",     hint: "Tên tiếng Anh chính thức của công ty/đoàn" },
+  { name: "client_company_name_vi",           type: "text",     hint: "Tên tiếng Việt đầy đủ của công ty/đoàn" },
+  { name: "client_representative_name_en",    type: "text",     hint: "Người đại diện ký hợp đồng, dạng \"Mr. Nguyen Van An\" hoặc \"Ms. Tran Thi Binh\" (không dấu)" },
+  { name: "client_representative_name_vi",    type: "text",     hint: "Người đại diện ký hợp đồng, dạng \"Ông. Nguyễn Văn An\" hoặc \"Bà. Trần Thị Bình\"" },
+  { name: "client_representative_name_en_vi", type: "text",     hint: "Người đại diện ký hợp đồng, dạng \"Mr/Ông. Nguyễn Văn An\" hoặc \"Ms/Bà. Trần Thị Bình\"" },
+  { name: "name_for_attention_of",            type: "text",     hint: "Người liên hệ/nhận hóa đơn (thường là người đang nhắn tin), dạng \"Mr/Ông. Nguyễn Văn An\" hoặc \"Ms/Bà. Trần Thị Bình\"" },
+  { name: "client_representative_title_en",   type: "text",     hint: "Chức danh tiếng Anh của người đại diện, ví dụ \"General Director\"" },
+  { name: "client_representative_title_vi",   type: "text",     hint: "Chức danh tiếng Việt của người đại diện, ví dụ \"Tổng Giám đốc\"" },
   { name: "client_address_en",                type: "text" },
   { name: "client_address_vi",                type: "text" },
-  { name: "client_phone",                     type: "text" },
-  { name: "client_mobile_phone",              type: "text" },
+  { name: "client_phone",                     type: "text",     hint: "Số máy bàn/tổng đài của công ty" },
+  { name: "client_mobile_phone",              type: "text",     hint: "Số di động của người liên hệ" },
   { name: "client_email",                     type: "text" },
-  { name: "client_VAT_code",                  type: "text" },
-  { name: "deposit_percent",                  type: "text" },
-  { name: "request_to_settle_before_date",    type: "date" },
-  { name: "contract_cancellation_date",       type: "date" }
+  { name: "client_VAT_code",                  type: "text",     hint: "Chỉ gồm chữ số" },
+  { name: "deposit_percent",                  type: "percent",  hint: "Chỉ là con số 0-100, không kèm ký tự %" },
+  { name: "request_to_settle_before_date",    type: "date",     hint: "Hạn thanh toán toàn bộ" },
+  { name: "contract_cancellation_date",       type: "date",     hint: "Mốc hủy: hủy sau ngày này tính phí 100%" },
+  { name: "event_start_time",                 type: "time" },
+  { name: "event_end_time",                   type: "time" },
+  { name: "event_setup_type",                 type: "select",   hint: "Classroom = kiểu lớp học; Theater = kiểu rạp hát/hội trường; Banquet = bàn tròn; Cocktail = tiệc đứng; U-shape = kê chữ U" },
+  { name: "meal_start_time",                  type: "time",     hint: "Bữa ăn chính (trưa hoặc tối)" },
+  { name: "meal_end_time",                    type: "time",     hint: "Bữa ăn chính (trưa hoặc tối)" },
+  { name: "meal_setup_type",                  type: "select",   hint: "Banquet = kê bàn tròn tiệc riêng; Existing = dùng bố trí sẵn có của nhà hàng" },
+  { name: "meal_venue",                       type: "select",   hint: "Nhà hàng Cơm Vòng = Com Vong Restaurant, hoặc tên sảnh" },
+  { name: "morning_tea_break_start_time",     type: "time" },
+  { name: "morning_tea_break_end_time",       type: "time" },
+  { name: "afternoon_tea_break_start_time",   type: "time" },
+  { name: "afternoon_tea_break_end_time",     type: "time" },
+  { name: "tea_break_venue",                  type: "select",   hint: "Foyer = sảnh chờ trước phòng, hoặc tên sảnh" },
+  { name: "number_of_persons",                type: "integer",  hint: "Số nguyên, ví dụ 150" },
+  { name: "unit_price",                       type: "price",    hint: "Đơn giá trên mỗi khách (VND), chỉ gồm chữ số; \"1tr2\" = 1200000, \"850k\" = 850000" },
+  { name: "LED_unit_price",                   type: "price",    hint: "Đơn giá thuê màn hình LED (VND), chỉ gồm chữ số" },
+  { name: "sale_rep_fullname",                type: "sale_rep" },
+  { name: "sale_rep_title_en",                type: "sale_rep", hint: "Chỉ điền khi sale không có trong danh sách có sẵn" },
+  { name: "sale_rep_title_vi",                type: "sale_rep", hint: "Chỉ điền khi sale không có trong danh sách có sẵn" }
 ];
+
+// Ngày gốc của các cụm trường tự tính (mỗi ngày sinh ra 4 biến: ngày, tháng, tháng tiếng Anh, năm).
+const EXTRACT_DATE_SOURCES = [
+  { key: "contract_created_full_date",    nativeId: "contractCreatedFullDate", displayId: "contractCreatedFullDate_display", prefix: "contract_created",
+    meaning: "Ngày lập hợp đồng", hint: "Chỉ điền khi tin nhắn nêu rõ; nếu không, hệ thống dùng ngày hôm nay" },
+  { key: "returning_agreement_full_date", nativeId: "returnAgreementFullDate", displayId: "returnAgreementFullDate_display", prefix: "returning_agreement",
+    meaning: "Hạn khách ký và gửi lại hợp đồng cho khách sạn (cut-off date)", hint: "Chỉ điền khi tin nhắn nêu rõ; nếu không, hệ thống dùng hôm nay + 7 ngày" }
+];
+
+// Tiêu chí chọn biểu mẫu. Thứ tự áp dụng: gói -> thời lượng -> bữa ăn -> sảnh,
+// vì gói dịch vụ giới hạn các lựa chọn thời lượng và bữa ăn.
+const EXTRACT_CRITERIA = [
+  { key: "template_package", criteria: "pkg",   meaning: "Gói dịch vụ",
+    hint: "package = trọn gói hội nghị; room-rental = chỉ thuê phòng/hội trường; package1/package2/package3 = gói tiệc tất niên (YEP) số 1/2/3" },
+  { key: "template_day",     criteria: "day",   meaning: "Thời lượng",
+    hint: "fullday = cả ngày; halfday = nửa ngày (chỉ dùng với room-rental); halfday-morning = nửa ngày sáng; halfday-afternoon = nửa ngày chiều; YEP = tiệc tất niên (Year End Party)" },
+  { key: "template_meal",    criteria: "meal",  meaning: "Bữa ăn kèm theo",
+    hint: "lunch = ăn trưa; dinner = ăn tối; nomeal = không kèm bữa ăn" },
+  { key: "template_venue",   criteria: "venue", meaning: "Sảnh/phòng tổ chức sự kiện" }
+];
+
+const VI_WEEKDAYS = ["Chủ nhật", "Thứ hai", "Thứ ba", "Thứ tư", "Thứ năm", "Thứ sáu", "Thứ bảy"];
 
 const $ = id => document.getElementById(id);
 
@@ -685,7 +726,7 @@ function fillSampleData() {
     morning_tea_break_end_time: "09:30",
     afternoon_tea_break_start_time: "15:00",
     afternoon_tea_break_end_time: "15:30",
-    tea_break_venue: "Pre-function area",
+    tea_break_venue: "Foyer",
     number_of_persons: "200"
   };
   for (const [name, value] of Object.entries(eventSample)) setFieldValue(name, value);
@@ -831,50 +872,263 @@ function setExtractLoading(active) {
   if (button) button.classList.toggle("is-loading", active);
 }
 
+// Kiểm tra chuỗi YYYY-MM-DD là một ngày có thật (loại 2026-02-30...).
+function isValidIsoDate(iso) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!match) return false;
+  const [year, month, day] = match.slice(1).map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+}
+
 // Điền ngày dạng ISO (YYYY-MM-DD) vào cả ô hiển thị dd/mm/yyyy và input date ẩn.
 function applyDateFieldIso(name, iso) {
   const input = fields.get(name);
-  if (!input || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return;
+  if (!input || !isValidIsoDate(iso)) return false;
   input.value = formatDateDMY(iso);
   clearFieldInvalid(input);
   const native = input.closest(".date-picker-wrap")?.querySelector(".date-native");
   if (native) native.value = iso;
+  return true;
 }
 
-function buildExtractionPrompt() {
-  const lines = EXTRACTABLE_FIELDS.map(field => {
-    const meaning = variablesByName.get(field.name)?.meaning || field.name;
-    return `- ${field.name}: ${meaning}`;
+// Điền ngày gốc của cụm trường tự tính rồi tính lại ngày/tháng/năm.
+function applyDateSourceIso(source, iso) {
+  if (!isValidIsoDate(iso)) return false;
+  $(source.nativeId).value = iso;
+  const display = $(source.displayId);
+  if (display) display.value = formatDateDMY(iso);
+  applyDateParts(source.nativeId, source.prefix);
+  return true;
+}
+
+function applyTimeFieldValue(input, value) {
+  const previous = input.value;
+  input.value = value;
+  normalizeTimeInput(input);
+  if (!input.classList.contains("is-invalid")) return true;
+  input.value = previous;
+  clearFieldInvalid(input);
+  return false;
+}
+
+// "1,200,000" -> "1200000"; trả "" nếu còn ký tự khác chữ số.
+function digitsOnly(value) {
+  const compact = value.replace(/[\s,.]/g, "");
+  return /^\d+$/.test(compact) ? compact : "";
+}
+
+function cleanExtractedValue(raw) {
+  if (raw === null || raw === undefined) return "";
+  const value = String(raw).trim();
+  return /^(null|undefined|n\/a)$/i.test(value) ? "" : value;
+}
+
+function findMatchingOption(select, value) {
+  const wanted = value.trim().toLowerCase();
+  return Array.from(select.options).find(option => option.value &&
+    (option.value.toLowerCase() === wanted || option.textContent.trim().toLowerCase() === wanted)) || null;
+}
+
+// Giá trị hợp lệ của một select; tùy chọn "theo sảnh" có thể là bất kỳ sảnh nào.
+function selectOptionValues(select) {
+  const values = new Set();
+  for (const option of select?.options || []) {
+    if (option.dataset.venueOption) TEMPLATE_CRITERIA.venue.options.forEach(o => values.add(o.value));
+    else if (option.value) values.add(option.value);
+  }
+  return [...values];
+}
+
+function saleRepRadios() {
+  return Array.from(document.querySelectorAll('#segment_sale_rep_fullname input[type="radio"]'));
+}
+
+function saleRepHint() {
+  const presets = saleRepRadios().map(radio => radio.value).filter(Boolean).map(value => `"${value}"`);
+  return `Nhân viên kinh doanh của khách sạn phụ trách, dạng "Ms/Bà. Họ Tên" hoặc "Mr/Ông. Họ Tên". Nếu là ${presets.join(" hoặc ")} thì trả đúng chuỗi đó`;
+}
+
+// Danh sách khóa JSON mà AI cần trả về, kèm ý nghĩa, gợi ý và giá trị hợp lệ.
+function extractionEntries() {
+  const entries = EXTRACT_CRITERIA.map(item => ({
+    key: item.key,
+    meaning: item.meaning,
+    hint: item.hint,
+    options: TEMPLATE_CRITERIA[item.criteria].options.map(option => option.value)
+  }));
+  for (const field of EXTRACTABLE_FIELDS) {
+    entries.push({
+      key: field.name,
+      meaning: readableVariableName(field.name),
+      hint: field.name === "sale_rep_fullname" ? saleRepHint() : field.hint,
+      options: field.type === "select" ? selectOptionValues(fields.get(field.name)) : null
+    });
+  }
+  for (const source of EXTRACT_DATE_SOURCES) {
+    entries.push({ key: source.key, meaning: source.meaning, hint: source.hint });
+  }
+  return entries;
+}
+
+function buildExtractionPrompt(entries) {
+  const today = new Date();
+  const todayIso = toLocalIsoDate(today);
+  const lines = entries.map(entry => {
+    const parts = [`- ${entry.key}: ${entry.meaning}`];
+    if (entry.hint) parts.push(entry.hint);
+    if (entry.options) parts.push(`Chỉ chọn một trong: ${entry.options.join(" | ")}`);
+    return parts.join(". ");
   });
   return [
-    "Bạn là trợ lý trích xuất thông tin hợp đồng sự kiện cho khách sạn.",
-    "Người dùng sẽ dán nội dung tin nhắn/email của khách hàng.",
+    "Bạn là trợ lý trích xuất thông tin hợp đồng sự kiện cho khách sạn Mövenpick Living West Hanoi.",
+    "Người dùng sẽ dán nội dung tin nhắn/email của khách hàng (có thể gồm nhiều tin nhắn trao đổi qua lại).",
+    `Hôm nay là ${VI_WEEKDAYS[today.getDay()]}, ngày ${formatDateDMY(todayIso)} (${todayIso}).`,
     "Hãy đọc kỹ và trả về DUY NHẤT một JSON object với các khóa sau (chỉ điền khi chắc chắn, không có thì để null):",
     ...lines,
     "",
     "Quy tắc:",
-    "- Ngày (các trường *_date) trả về theo định dạng YYYY-MM-DD.",
-    "- deposit_percent chỉ là con số (0-100), không kèm ký tự %.",
-    "- client_representative_name_vi là tên đầy đủ kèm danh xưng \"Ông.\" hoặc \"Bà.\", ví dụ \"Ông. Nguyễn Văn An\".",
-    "- client_representative_name_en_vi là tên đầy đủ kèm danh xưng dạng song ngữ \"Mr/Ông.\" hoặc \"Ms/Bà.\", ưu tiên tên tiếng Việt, ví dụ \"Mr/Ông. Nguyễn Văn An\".",
-    "- Mã số thuế (client_VAT_code) chỉ gồm chữ số.",
+    "- Ngày trả về theo định dạng YYYY-MM-DD. Ngày thiếu năm hoặc ngày tương đối (\"thứ 6 tuần sau\", \"cuối tháng này\") thì quy đổi dựa trên ngày hôm nay, chọn ngày gần nhất trong tương lai.",
+    "- Giờ trả về dạng 24 giờ HH:MM, ví dụ \"2h chiều\" = \"14:00\", \"8h30\" = \"08:30\".",
+    "- Số tiền và số lượng chỉ gồm chữ số, không kèm đơn vị hay dấu phân cách.",
+    "- Danh xưng: anh/ông/Mr là nam (Mr., Ông., Mr/Ông.); chị/bà/cô/Ms/Mrs là nữ (Ms., Bà., Ms/Bà.). Không rõ giới tính thì chỉ ghi tên, không đoán.",
+    "- Người đại diện là người ký hợp đồng (thường là giám đốc); người liên hệ là người trao đổi/nhận hóa đơn.",
+    "- Tên người đại diện: có tên thì điền đủ 3 dạng _en, _vi, _en_vi. Các cặp tiếng Anh/tiếng Việt khác (tên công ty, chức danh, địa chỉ): chỉ điền bản có trong tin nhắn, không tự dịch, hệ thống sẽ tự dịch.",
+    "- Trường có danh sách giá trị: chỉ trả đúng một giá trị trong danh sách, không khớp thì để null.",
+    "- Tea break sáng/chiều có giờ riêng (morning_/afternoon_tea_break_*); bữa ăn chính trưa/tối điền vào meal_*.",
     "- Không bịa thông tin. Nếu không tìm thấy thì để null.",
     "- Chỉ trả về JSON hợp lệ, không kèm giải thích."
   ].join("\n");
 }
 
-function applyExtractedValues(data) {
+// Schema ép Gemini trả đúng tên khóa, giá trị enum cho các trường có danh sách.
+function buildResponseSchema(entries) {
+  const properties = {};
+  for (const entry of entries) {
+    properties[entry.key] = entry.options
+      ? { type: "STRING", format: "enum", enum: entry.options, nullable: true, description: entry.meaning }
+      : { type: "STRING", nullable: true, description: entry.meaning };
+  }
+  return { type: "OBJECT", properties, propertyOrdering: entries.map(entry => entry.key) };
+}
+
+function applyExtractedField(field, value) {
+  const input = fields.get(field.name);
+  if (!input) return false;
+  switch (field.type) {
+    case "date":
+      return applyDateFieldIso(field.name, value);
+    case "time":
+      return applyTimeFieldValue(input, value);
+    case "price":
+    case "integer": {
+      const digits = digitsOnly(value);
+      if (!digits) return false;
+      input.value = field.type === "integer" ? String(Number(digits)) : digits;
+      if (field.type === "price") formatPriceInput(input);
+      clearFieldInvalid(input);
+      return true;
+    }
+    case "percent": {
+      const percent = Number(value.replace("%", "").replace(",", ".").trim());
+      if (!Number.isFinite(percent) || percent < 0 || percent > 100) return false;
+      setFieldValue(field.name, String(percent));
+      return true;
+    }
+    case "select": {
+      const option = findMatchingOption(input, value);
+      if (!option) return false;
+      input.value = option.value;
+      return true;
+    }
+    default:
+      setFieldValue(field.name, value);
+      return true;
+  }
+}
+
+// Chọn sale có sẵn nếu khớp tên (kể cả chỉ có tên gọi, ví dụ "chị Hiền"), không thì chuyển sang "Tự nhập…".
+// Trả về số biến sale đã được điền.
+function applyExtractedSaleRep(data) {
+  const name = cleanExtractedValue(data.sale_rep_fullname);
+  const radios = saleRepRadios();
+  if (!name || !radios.length) return 0;
+  const key = text => removeDiacritics(parsePersonName(text).name).toLowerCase()
+    .replace(/\s+/g, " ").trim()
+    .replace(/^(anh|chi|em|co|chu|bac|a|c)\.?\s+/, "");
+  const wanted = key(name);
+  const presets = radios.filter(radio => radio.value);
+  let preset = presets.find(radio => key(radio.value) === wanted);
+  if (!preset && wanted) {
+    const byGivenName = presets.filter(radio => key(radio.value).endsWith(` ${wanted}`));
+    if (byGivenName.length === 1) preset = byGivenName[0];
+  }
+  const target = preset || radios.find(radio => radio.value === "");
+  if (!target) return 0;
+  if (!target.checked) {
+    target.checked = true;
+    target.dispatchEvent(new Event("change"));
+  }
+  if (preset) return 3;
+
   let filled = 0;
-  for (const field of EXTRACTABLE_FIELDS) {
-    const raw = data[field.name];
-    if (raw === null || raw === undefined) continue;
-    const value = String(raw).trim();
+  for (const fieldName of ["sale_rep_fullname", "sale_rep_title_en", "sale_rep_title_vi"]) {
+    const value = fieldName === "sale_rep_fullname" ? name : cleanExtractedValue(data[fieldName]);
     if (!value) continue;
-    if (field.type === "date") applyDateFieldIso(field.name, value);
-    else setFieldValue(field.name, value);
+    setFieldValue(fieldName, value);
     filled += 1;
   }
   return filled;
+}
+
+// Áp dụng tiêu chí biểu mẫu trước, vì đổi tiêu chí sẽ đặt lại giờ sự kiện/bữa ăn mặc định;
+// sau đó mới điền các trường để giá trị từ tin nhắn không bị ghi đè.
+function applyExtractedValues(data) {
+  const result = { filled: 0, criteria: 0, skipped: [] };
+
+  for (const item of EXTRACT_CRITERIA) {
+    const value = cleanExtractedValue(data[item.key]);
+    if (!value) continue;
+    const select = $(TEMPLATE_CRITERIA[item.criteria].selectId);
+    const option = select && findMatchingOption(select, value);
+    if (option && select.value === option.value) { result.criteria += 1; continue; }
+    if (!option || option.disabled || select.disabled) { result.skipped.push(item.meaning); continue; }
+    select.value = option.value;
+    select.dispatchEvent(new Event("change"));
+    result.criteria += 1;
+  }
+
+  for (const source of EXTRACT_DATE_SOURCES) {
+    const value = cleanExtractedValue(data[source.key]);
+    if (!value) continue;
+    if (applyDateSourceIso(source, value)) result.filled += 4;
+    else result.skipped.push(source.meaning);
+  }
+
+  for (const field of EXTRACTABLE_FIELDS) {
+    if (field.type === "sale_rep") continue;
+    const value = cleanExtractedValue(data[field.name]);
+    if (!value) continue;
+    if (applyExtractedField(field, value)) result.filled += 1;
+    else result.skipped.push(readableVariableName(field.name));
+  }
+
+  result.filled += applyExtractedSaleRep(data);
+  return result;
+}
+
+async function describeGeminiError(response) {
+  let detail = "";
+  try {
+    detail = (await response.json())?.error?.message || "";
+  } catch (_) {}
+  const { status } = response;
+  if (status === 401 || status === 403 || (status === 400 && /api[ _-]?key/i.test(detail))) {
+    return "API key không hợp lệ hoặc chưa được cấp quyền.";
+  }
+  if (status === 429) return "Đã vượt hạn mức sử dụng miễn phí. Hãy thử lại sau.";
+  if (status === 503) return "Máy chủ AI đang quá tải (503). Đây là sự cố tạm thời phía Google, không phải lỗi của bạn. Hãy chờ vài giây rồi bấm Trích xuất lại.";
+  return `Dịch vụ AI trả về lỗi (${status})${detail ? `: ${detail}` : ""}.`;
 }
 
 function openExtractDialog() {
@@ -938,60 +1192,85 @@ async function extractInformation() {
   button.disabled = true;
   setExtractLoading(true);
   setExtractStatus("");
-  extractAbortController = new AbortController();
+  const controller = new AbortController();
+  extractAbortController = controller;
+  const entries = extractionEntries();
 
   try {
-    const response = await fetch(GEMINI_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey
-      },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: buildExtractionPrompt() }] },
-        contents: [{ parts: [{ text: message }] }],
-        generationConfig: { temperature: 0, responseMimeType: "application/json" }
-      }),
-      signal: extractAbortController.signal
-    });
-
-    if (response.status === 400 || response.status === 401 || response.status === 403) {
-      throw new Error("API key không hợp lệ hoặc chưa được cấp quyền.");
+    let response;
+    try {
+      response = await fetch(GEMINI_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey
+        },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: buildExtractionPrompt(entries) }] },
+          contents: [{ parts: [{ text: message }] }],
+          generationConfig: {
+            temperature: 0,
+            responseMimeType: "application/json",
+            responseSchema: buildResponseSchema(entries)
+          }
+        }),
+        signal: controller.signal
+      });
+    } catch (error) {
+      if (error.name === "AbortError") throw error;
+      throw new Error("Không kết nối được tới dịch vụ AI. Hãy kiểm tra Internet rồi thử lại.");
     }
-    if (response.status === 429) throw new Error("Đã vượt hạn mức sử dụng miễn phí. Hãy thử lại sau.");
-    if (response.status === 503) throw new Error("Máy chủ AI đang quá tải (503). Đây là sự cố tạm thời phía Google, không phải lỗi của bạn. Hãy chờ vài giây rồi bấm Trích xuất lại.");
-    if (!response.ok) throw new Error(`Dịch vụ AI trả về lỗi (${response.status}).`);
+
+    if (!response.ok) throw new Error(await describeGeminiError(response));
 
     const payload = await response.json();
-    const content = payload.candidates?.[0]?.content?.parts?.map(part => part.text || "").join("");
-    if (!content) throw new Error("AI không trả về nội dung. Hãy thử lại.");
+    const candidate = payload.candidates?.[0];
+    const content = candidate?.content?.parts?.map(part => part.text || "").join("");
+    if (!content) {
+      throw new Error(payload.promptFeedback?.blockReason
+        ? "AI từ chối xử lý nội dung tin nhắn này."
+        : "AI không trả về nội dung. Hãy thử lại.");
+    }
 
     let data;
     try {
       data = JSON.parse(content);
     } catch (_) {
+      throw new Error(candidate.finishReason === "MAX_TOKENS"
+        ? "Kết quả từ AI bị cắt ngang do quá dài. Hãy thử lại."
+        : "Không đọc được kết quả từ AI. Hãy thử lại.");
+    }
+    if (!data || typeof data !== "object" || Array.isArray(data)) {
       throw new Error("Không đọc được kết quả từ AI. Hãy thử lại.");
     }
 
-    const filled = applyExtractedValues(data);
-    if (!filled) {
-      setExtractStatus("Không tìm thấy thông tin phù hợp trong tin nhắn.", "error");
+    const result = applyExtractedValues(data);
+    if (!result.filled && !result.criteria) {
+      setExtractStatus(result.skipped.length
+        ? `AI trả về giá trị không hợp lệ cho: ${result.skipped.join(", ")}.`
+        : "Không tìm thấy thông tin phù hợp trong tin nhắn.", "error");
       return;
     }
 
     fillMissingTranslations();
     clearInvalidFields();
     closeExtractDialog();
-    setStatus(`Đã trích xuất và điền ${filled} trường từ tin nhắn. Hãy kiểm tra lại trước khi tạo hợp đồng.`, "success");
+    const summary = [`điền ${result.filled} trường`];
+    if (result.criteria) summary.push(`chọn ${result.criteria} tiêu chí biểu mẫu`);
+    const skipped = result.skipped.length ? ` Bỏ qua do giá trị không hợp lệ: ${result.skipped.join(", ")}.` : "";
+    setStatus(`Đã trích xuất từ tin nhắn: ${summary.join(", ")}.${skipped} Hãy kiểm tra lại trước khi tạo hợp đồng.`,
+      result.skipped.length ? "info" : "success");
   } catch (error) {
     if (error.name === "AbortError") return;
     console.error(error);
-    const offline = error instanceof TypeError;
-    setExtractStatus(offline ? "Không kết nối được tới dịch vụ AI. Hãy kiểm tra Internet rồi thử lại." : (error.message || "Có lỗi khi trích xuất thông tin."), "error");
+    setExtractStatus(error.message || "Có lỗi khi trích xuất thông tin.", "error");
   } finally {
-    extractAbortController = null;
-    button.disabled = false;
-    setExtractLoading(false);
+    // Chỉ reset khi đây vẫn là yêu cầu hiện hành (dialog có thể đã bị đóng và mở yêu cầu mới).
+    if (extractAbortController === controller) {
+      extractAbortController = null;
+      button.disabled = false;
+      setExtractLoading(false);
+    }
   }
 }
 
@@ -1381,6 +1660,10 @@ async function initialize() {
   $("extractBtn")?.addEventListener("click", extractInformation);
   $("extractCloseBtn")?.addEventListener("click", closeExtractDialog);
   $("extractCancelBtn")?.addEventListener("click", closeExtractDialog);
+  // Đóng bằng phím Esc không đi qua closeExtractDialog: hủy yêu cầu đang chạy để không tự điền sau khi đã đóng.
+  $("extractDialog")?.addEventListener("close", () => {
+    if (extractAbortController) closeExtractDialog();
+  });
 }
 
 document.addEventListener("DOMContentLoaded", initialize);
